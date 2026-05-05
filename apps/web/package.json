@@ -1,0 +1,29 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint app components lib next.config.ts eslint.config.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@recommender/shared-types": "file:../../packages/shared-types",
+    "framer-motion": "^12.10.0",
+    "lucide-react": "^1.14.0",
+    "next": "15.5.15",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "zustand": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.5.15",
+    "typescript": "^5.8.3"
+  }
+}

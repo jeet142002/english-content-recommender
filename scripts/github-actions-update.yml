@@ -1,0 +1,41 @@
+name: Update TMDB Data
+
+on:
+  schedule:
+    # Run every Sunday at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:  # Allow manual triggers
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        cd apps/recommender-api
+        pip install -r requirements.txt
+        
+    - name: Run TMDB update
+      env:
+        TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        TMDB_API_TOKEN: ${{ secrets.TMDB_API_TOKEN }}
+        OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+      run: |
+        python scripts/update-tmdb-data.py
+        
+    - name: Commit and push if changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add data/seeds/english_titles.json
+        git diff --staged --quiet || git commit -m "Auto-update TMDB catalog $(date +'%Y-%m-%d')"
+        git push

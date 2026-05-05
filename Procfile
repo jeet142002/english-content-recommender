@@ -1,0 +1,1 @@
+web: uvicorn apps.recommender_api.app.main:app --host 0.0.0.0 --port $PORT
