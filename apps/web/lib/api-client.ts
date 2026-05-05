@@ -43,7 +43,7 @@ export function startSession(input: {
   contentMode: ContentMode;
   adventureLevel: AdventureLevel;
 }) {
-  return apiFetch<SessionTitleResponse>("/api/session/start", input);
+  return apiFetch<SessionTitleResponse>("/session/start", input);
 }
 
 export function submitFeedback(input: {
@@ -51,13 +51,13 @@ export function submitFeedback(input: {
   titleId: string;
   value: FeedbackValue;
 }) {
-  return apiFetch<SessionTitleResponse>("/api/session/feedback", input);
+  return apiFetch<SessionTitleResponse>("/session/feedback", input);
 }
 
 export function stopSession(sessionId: string) {
-  return apiFetch<RecommendationResult>("/api/session/stop", { sessionId });
+  return apiFetch<RecommendationResult>("/session/stop", { sessionId });
 }
 
 export function healthcheck() {
-  return apiFetch<{ ok: boolean; catalogSize: number }>("/api/health");
+  return apiFetch<{ ok: boolean; catalogSize: number }>("/health");
 }
