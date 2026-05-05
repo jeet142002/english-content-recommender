@@ -1,7 +1,17 @@
-import type { AdventureLevel, ContentMode, FeedbackValue, RecommendationResult, SessionTitleResponse } from "./types";
+import type {
+  AdventureLevel,
+  ContentMode,
+  FeedbackValue,
+  RecommendationResult,
+  SessionTitleResponse,
+} from "./types";
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 async function apiFetch<T>(path: string, body?: object): Promise<T> {
-  const response = await fetch(path, {
+  const url = `${BASE_URL}${path}`;
+
+  const response = await fetch(url, {
     method: body ? "POST" : "GET",
     headers: {
       "Content-Type": "application/json",
@@ -20,7 +30,7 @@ async function apiFetch<T>(path: string, body?: object): Promise<T> {
         message = payload.detail;
       }
     } catch {
-      // Keep the raw response text when the API does not return JSON.
+      // ignore JSON parse errors
     }
 
     throw new Error(message);
@@ -29,11 +39,18 @@ async function apiFetch<T>(path: string, body?: object): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function startSession(input: { contentMode: ContentMode; adventureLevel: AdventureLevel }) {
+export function startSession(input: {
+  contentMode: ContentMode;
+  adventureLevel: AdventureLevel;
+}) {
   return apiFetch<SessionTitleResponse>("/api/session/start", input);
 }
 
-export function submitFeedback(input: { sessionId: string; titleId: string; value: FeedbackValue }) {
+export function submitFeedback(input: {
+  sessionId: string;
+  titleId: string;
+  value: FeedbackValue;
+}) {
   return apiFetch<SessionTitleResponse>("/api/session/feedback", input);
 }
 
