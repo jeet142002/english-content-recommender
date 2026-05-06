@@ -228,55 +228,48 @@ onStart: () => void;
 };
 
 export function LandingShell({ onStart }: LandingShellProps) {
-return ( <section className="relative flex items-center justify-center min-h-screen px-6 overflow-hidden">
-
-
-  <div className="absolute inset-0 -z-10">
-    <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-purple-600/20 blur-[120px] rounded-full" />
-    <div className="absolute bottom-[-30%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/20 blur-[120px] rounded-full" />
-  </div>
+return ( <section className="flex items-center justify-center min-h-screen px-6">
 
   <div className="max-w-2xl w-full text-center">
 
-    
-    <div className="inline-flex items-center gap-2 text-sm text-white/60 mb-6 px-4 py-2 rounded-full bg-white/5 backdrop-blur border border-white/10">
+    {/* Badge */}
+    <div className="inline-flex items-center gap-2 text-sm text-white/60 mb-6 px-4 py-2 rounded-full border border-white/10">
       <Sparkles size={14} />
       Smart English-only recommendations
     </div>
 
-    
-    <h1 className="text-5xl md:text-6xl font-semibold leading-tight tracking-tight">
+    {/* Headline */}
+    <h1 className="text-4xl md:text-5xl font-semibold leading-tight tracking-tight">
       Your next obsession <br />
-      <span className="bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
+      <span className="text-purple-400">
         starts here.
       </span>
     </h1>
 
-    
-    <p className="mt-6 text-lg text-white/60 leading-relaxed">
+    {/* Subtext */}
+    <p className="mt-6 text-base md:text-lg text-white/60 leading-relaxed">
       Tell us what you enjoy. We’ll find something you’ll actually want to watch tonight — no endless scrolling.
     </p>
 
-    
+    {/* CTA */}
     <motion.button
-      whileHover={{ scale: 1.06 }}
-      whileTap={{ scale: 0.96 }}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
       onClick={onStart}
-      className="mt-10 px-8 py-4 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 
-      text-white text-lg font-medium shadow-xl shadow-purple-500/20 
-      hover:shadow-purple-500/40 transition-all duration-300 flex items-center gap-2 mx-auto"
+      className="mt-10 px-6 py-3 rounded-full bg-purple-600 hover:bg-purple-500
+      text-white font-medium shadow-md transition-all flex items-center gap-2 mx-auto"
     >
       Find my next show
-      <ArrowRight size={18} />
+      <ArrowRight size={16} />
     </motion.button>
 
-    
+    {/* Hint */}
     <p className="mt-4 text-sm text-white/40">
       Takes less than 30 seconds
     </p>
+
   </div>
 </section>
 
 );
 }
-

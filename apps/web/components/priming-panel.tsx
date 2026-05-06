@@ -262,15 +262,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-Film,
-Tv,
-Shuffle,
-ArrowRight,
-Loader2,
-Sparkles,
-} from "lucide-react";
-
+import { Film, Tv, Shuffle, Loader2, ArrowRight } from "lucide-react";
 import type { AdventureLevel, ContentMode } from "@/lib/types";
 
 type PrimingPanelProps = {
@@ -282,42 +274,15 @@ loading: boolean;
 };
 
 const contentOptions = [
-{
-value: "movie",
-label: "Movies",
-desc: "Quick, complete stories",
-icon: Film,
-},
-{
-value: "series",
-label: "Series",
-desc: "Longer, immersive journeys",
-icon: Tv,
-},
-{
-value: "either",
-label: "Surprise me",
-desc: "Best of both worlds",
-icon: Shuffle,
-},
+{ value: "movie", label: "Movie", icon: Film },
+{ value: "series", label: "Series", icon: Tv },
+{ value: "either", label: "Either", icon: Shuffle },
 ];
 
 const adventureOptions = [
-{
-value: "safe",
-label: "Comfort zone",
-desc: "Familiar, easy picks",
-},
-{
-value: "balanced",
-label: "Mix it up",
-desc: "Safe + something new",
-},
-{
-value: "surprise",
-label: "Take a risk",
-desc: "Unexpected, bold choices",
-},
+{ value: "safe", label: "Comfort zone", desc: "Familiar, easy picks" },
+{ value: "balanced", label: "Mix it up", desc: "Safe + new" },
+{ value: "surprise", label: "Take a risk", desc: "Unexpected choices" },
 ];
 
 export function PrimingPanel({
@@ -327,90 +292,82 @@ onChange,
 onSubmit,
 loading,
 }: PrimingPanelProps) {
-return ( <section className="relative min-h-screen flex items-center justify-center px-6">
+return ( <section className="max-w-2xl mx-auto px-6 py-12">
 
+  {/* Heading */}
+  <div className="text-center mb-10">
+    <h1 className="text-3xl font-semibold mb-2">
+      What are you in the mood for?
+    </h1>
 
-  <div className="absolute inset-0 -z-10">
-    <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-purple-600/20 blur-[120px] rounded-full" />
+    <p className="text-white/50">
+      Just two quick choices — we’ll handle the rest.
+    </p>
   </div>
 
-  <div className="max-w-2xl w-full">
+  {/* Content Mode */}
+  <div className="flex justify-center gap-4 mb-10 flex-wrap">
+    {contentOptions.map((opt) => {
+      const Icon = opt.icon;
+      const active = contentMode === opt.value;
 
-    <div className="text-center mb-10">
-      <div className="inline-flex items-center gap-2 text-sm text-white/60 mb-4">
-        <Sparkles size={14} />
-        Personalize your experience
-      </div>
-
-      <h1 className="text-3xl md:text-4xl font-semibold leading-tight">
-        What should we find for you?
-      </h1>
-
-      <p className="text-white/50 mt-3">
-        Two quick choices. Then we take over.
-      </p>
-    </div>
-
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-      {contentOptions.map((opt) => {
-        const Icon = opt.icon;
-        const active = contentMode === opt.value;
-
-        return (
-          <button
-            key={opt.value}
-            onClick={() => onChange(opt.value as ContentMode, adventureLevel)}
-            className={`p-5 rounded-2xl border text-left transition-all duration-200 ${
+      return (
+        <button
+          key={opt.value}
+          onClick={() => onChange(opt.value as ContentMode, adventureLevel)}
+          className={`flex items-center gap-2 px-5 py-3 rounded-full border transition-all
+            ${
               active
-                ? "bg-gradient-to-br from-purple-600/30 to-indigo-600/30 border-purple-500 shadow-lg shadow-purple-500/20"
-                : "border-white/10 hover:border-white/30 hover:bg-white/5"
+                ? "bg-purple-600 border-purple-500"
+                : "border-white/20 hover:border-white/40"
             }`}
-          >
-            <Icon className="mb-3" size={22} />
+        >
+          <Icon size={18} />
+          {opt.label}
+        </button>
+      );
+    })}
+  </div>
 
-            <div className="font-medium text-lg">{opt.label}</div>
-            <div className="text-sm text-white/50">{opt.desc}</div>
-          </button>
-        );
-      })}
-    </div>
+  {/* Adventure */}
+  <div className="space-y-4 mb-10">
+    {adventureOptions.map((opt) => {
+      const active = adventureLevel === opt.value;
 
-    <div className="flex flex-col gap-3 mb-10">
-      {adventureOptions.map((opt) => {
-        const active = adventureLevel === opt.value;
-
-        return (
-          <button
-            key={opt.value}
-            onClick={() => onChange(contentMode, opt.value as AdventureLevel)}
-            className={`p-4 rounded-xl text-left border transition-all duration-200 ${
+      return (
+        <button
+          key={opt.value}
+          onClick={() => onChange(contentMode, opt.value as AdventureLevel)}
+          className={`w-full p-4 rounded-xl border text-left transition-all
+            ${
               active
                 ? "bg-purple-600/20 border-purple-500"
-                : "border-white/10 hover:border-white/30 hover:bg-white/5"
+                : "border-white/20 hover:border-white/40"
             }`}
-          >
-            <div className="font-medium">{opt.label}</div>
-            <div className="text-sm text-white/50">{opt.desc}</div>
-          </button>
-        );
-      })}
-    </div>
+        >
+          <div className="font-medium">{opt.label}</div>
+          <div className="text-sm text-white/50">{opt.desc}</div>
+        </button>
+      );
+    })}
+  </div>
 
+  {/* CTA */}
+  <div className="flex justify-center">
     <motion.button
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={onSubmit}
       disabled={loading}
-      className="w-full py-4 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 
-      text-white text-lg font-medium shadow-xl shadow-purple-500/20 
-      hover:shadow-purple-500/40 transition-all duration-300 flex items-center justify-center gap-2"
+      className="px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 
+      text-white font-medium shadow-lg flex items-center gap-2"
     >
       {loading ? (
-        <Loader2 className="animate-spin" size={18} />
+        <Loader2 className="animate-spin" size={16} />
       ) : (
-        "Start discovering"
+        "Start tasting"
       )}
-      <ArrowRight size={18} />
+      <ArrowRight size={16} />
     </motion.button>
   </div>
 </section>
