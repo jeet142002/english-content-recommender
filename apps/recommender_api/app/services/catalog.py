@@ -9,7 +9,7 @@ from apps.recommender_api.app.models.schemas import Title
 
 
 ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_CATALOG_PATH = ROOT / "data" / "seeds" / "english_titles.json"
+DEFAULT_CATALOG_PATH = ROOT / "data" / "seeds" / "english_titles.generated.json"
 
 
 def catalog_path() -> Path:
