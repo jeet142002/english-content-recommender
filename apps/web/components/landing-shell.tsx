@@ -224,53 +224,59 @@ import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 
 type LandingShellProps = {
-  onStart: () => void;
+onStart: () => void;
 };
 
 export function LandingShell({ onStart }: LandingShellProps) {
-  return (
-    <section className="flex flex-col justify-center items-center text-center min-h-[70vh] px-4">
+return ( <section className="relative flex items-center justify-center min-h-screen px-6 overflow-hidden">
 
-      {/* TEST LINE (visible proof) */}
-      <h1 style={{ color: "red", fontSize: "30px" }}>
-        THIS IS NEW BUILD TEST
-      </h1>
 
-      {/* Badge */}
-      <div className="flex items-center gap-2 text-sm text-white/50 mb-6">
-        <Sparkles size={16} />
-        English-only smart recommender
-      </div>
+  <div className="absolute inset-0 -z-10">
+    <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-purple-600/20 blur-[120px] rounded-full" />
+    <div className="absolute bottom-[-30%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/20 blur-[120px] rounded-full" />
+  </div>
 
-      {/* Headline */}
-      <h1 className="text-5xl md:text-6xl font-semibold leading-tight max-w-3xl">
-        Stop scrolling. <br />
-        <span className="bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
-          Start watching.
-        </span>
-      </h1>
+  <div className="max-w-2xl w-full text-center">
 
-      {/* Subtext */}
-      <p className="mt-6 text-white/60 max-w-xl text-lg">
-        Tell us what you like. We’ll pick something you’ll actually enjoy tonight.
-      </p>
+    
+    <div className="inline-flex items-center gap-2 text-sm text-white/60 mb-6 px-4 py-2 rounded-full bg-white/5 backdrop-blur border border-white/10">
+      <Sparkles size={14} />
+      Smart English-only recommendations
+    </div>
 
-      {/* CTA */}
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={onStart}
-        className="mt-10 px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 
-        text-white font-medium shadow-lg hover:shadow-purple-500/30 flex items-center gap-2"
-      >
-        Find my next show
-        <ArrowRight size={16} />
-      </motion.button>
+    
+    <h1 className="text-5xl md:text-6xl font-semibold leading-tight tracking-tight">
+      Your next obsession <br />
+      <span className="bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
+        starts here.
+      </span>
+    </h1>
 
-      {/* Hint */}
-      <p className="mt-4 text-sm text-white/40">
-        Takes ~30 seconds
-      </p>
-    </section>
-  );
+    
+    <p className="mt-6 text-lg text-white/60 leading-relaxed">
+      Tell us what you enjoy. We’ll find something you’ll actually want to watch tonight — no endless scrolling.
+    </p>
+
+    
+    <motion.button
+      whileHover={{ scale: 1.06 }}
+      whileTap={{ scale: 0.96 }}
+      onClick={onStart}
+      className="mt-10 px-8 py-4 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 
+      text-white text-lg font-medium shadow-xl shadow-purple-500/20 
+      hover:shadow-purple-500/40 transition-all duration-300 flex items-center gap-2 mx-auto"
+    >
+      Find my next show
+      <ArrowRight size={18} />
+    </motion.button>
+
+    
+    <p className="mt-4 text-sm text-white/40">
+      Takes less than 30 seconds
+    </p>
+  </div>
+</section>
+
+);
 }
+

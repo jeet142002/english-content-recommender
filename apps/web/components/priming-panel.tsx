@@ -262,107 +262,158 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Film, Tv, Shuffle, Shield, Scale, Sparkles, Loader2, ArrowRight } from "lucide-react";
+import {
+Film,
+Tv,
+Shuffle,
+ArrowRight,
+Loader2,
+Sparkles,
+} from "lucide-react";
+
 import type { AdventureLevel, ContentMode } from "@/lib/types";
 
 type PrimingPanelProps = {
-  contentMode: ContentMode;
-  adventureLevel: AdventureLevel;
-  onChange: (contentMode: ContentMode, adventureLevel: AdventureLevel) => void;
-  onSubmit: () => void;
-  loading: boolean;
+contentMode: ContentMode;
+adventureLevel: AdventureLevel;
+onChange: (contentMode: ContentMode, adventureLevel: AdventureLevel) => void;
+onSubmit: () => void;
+loading: boolean;
 };
 
 const contentOptions = [
-  { value: "movie", label: "Movie", icon: Film },
-  { value: "series", label: "Series", icon: Tv },
-  { value: "either", label: "Either", icon: Shuffle },
+{
+value: "movie",
+label: "Movies",
+desc: "Quick, complete stories",
+icon: Film,
+},
+{
+value: "series",
+label: "Series",
+desc: "Longer, immersive journeys",
+icon: Tv,
+},
+{
+value: "either",
+label: "Surprise me",
+desc: "Best of both worlds",
+icon: Shuffle,
+},
 ];
 
 const adventureOptions = [
-  { value: "safe", label: "Comfort", desc: "Easy, familiar picks" },
-  { value: "balanced", label: "Balanced", desc: "Mix of safe + new" },
-  { value: "surprise", label: "Surprise me", desc: "Take me somewhere new" },
+{
+value: "safe",
+label: "Comfort zone",
+desc: "Familiar, easy picks",
+},
+{
+value: "balanced",
+label: "Mix it up",
+desc: "Safe + something new",
+},
+{
+value: "surprise",
+label: "Take a risk",
+desc: "Unexpected, bold choices",
+},
 ];
 
 export function PrimingPanel({
-  contentMode,
-  adventureLevel,
-  onChange,
-  onSubmit,
-  loading,
+contentMode,
+adventureLevel,
+onChange,
+onSubmit,
+loading,
 }: PrimingPanelProps) {
-  return (
-    <section className="max-w-xl mx-auto px-4 py-10">
-      
-      {/* Heading */}
-      <h1 className="text-3xl font-semibold mb-2">
-        What are you in the mood for?
+return ( <section className="relative min-h-screen flex items-center justify-center px-6">
+
+
+  <div className="absolute inset-0 -z-10">
+    <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-purple-600/20 blur-[120px] rounded-full" />
+  </div>
+
+  <div className="max-w-2xl w-full">
+
+    <div className="text-center mb-10">
+      <div className="inline-flex items-center gap-2 text-sm text-white/60 mb-4">
+        <Sparkles size={14} />
+        Personalize your experience
+      </div>
+
+      <h1 className="text-3xl md:text-4xl font-semibold leading-tight">
+        What should we find for you?
       </h1>
 
-      <p className="text-white/50 mb-8">
-        Just two quick choices — we’ll handle the rest.
+      <p className="text-white/50 mt-3">
+        Two quick choices. Then we take over.
       </p>
+    </div>
 
-      {/* Content Mode */}
-      <div className="flex gap-3 mb-10">
-        {contentOptions.map((opt) => {
-          const Icon = opt.icon;
-          const active = contentMode === opt.value;
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+      {contentOptions.map((opt) => {
+        const Icon = opt.icon;
+        const active = contentMode === opt.value;
 
-          return (
-            <button
-              key={opt.value}
-              onClick={() => onChange(opt.value as ContentMode, adventureLevel)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full border ${
-                active
-                  ? "bg-purple-600 border-purple-500"
-                  : "border-white/10 hover:border-white/30"
-              }`}
-            >
-              <Icon size={16} />
-              {opt.label}
-            </button>
-          );
-        })}
-      </div>
+        return (
+          <button
+            key={opt.value}
+            onClick={() => onChange(opt.value as ContentMode, adventureLevel)}
+            className={`p-5 rounded-2xl border text-left transition-all duration-200 ${
+              active
+                ? "bg-gradient-to-br from-purple-600/30 to-indigo-600/30 border-purple-500 shadow-lg shadow-purple-500/20"
+                : "border-white/10 hover:border-white/30 hover:bg-white/5"
+            }`}
+          >
+            <Icon className="mb-3" size={22} />
 
-      {/* Adventure */}
-      <h2 className="text-lg mb-4">How bold should we go?</h2>
+            <div className="font-medium text-lg">{opt.label}</div>
+            <div className="text-sm text-white/50">{opt.desc}</div>
+          </button>
+        );
+      })}
+    </div>
 
-      <div className="flex flex-col gap-3 mb-10">
-        {adventureOptions.map((opt) => {
-          const active = adventureLevel === opt.value;
+    <div className="flex flex-col gap-3 mb-10">
+      {adventureOptions.map((opt) => {
+        const active = adventureLevel === opt.value;
 
-          return (
-            <button
-              key={opt.value}
-              onClick={() => onChange(contentMode, opt.value as AdventureLevel)}
-              className={`p-4 rounded-xl text-left border ${
-                active
-                  ? "bg-purple-600/20 border-purple-500"
-                  : "border-white/10 hover:border-white/30"
-              }`}
-            >
-              <div className="font-medium">{opt.label}</div>
-              <div className="text-sm text-white/50">{opt.desc}</div>
-            </button>
-          );
-        })}
-      </div>
+        return (
+          <button
+            key={opt.value}
+            onClick={() => onChange(contentMode, opt.value as AdventureLevel)}
+            className={`p-4 rounded-xl text-left border transition-all duration-200 ${
+              active
+                ? "bg-purple-600/20 border-purple-500"
+                : "border-white/10 hover:border-white/30 hover:bg-white/5"
+            }`}
+          >
+            <div className="font-medium">{opt.label}</div>
+            <div className="text-sm text-white/50">{opt.desc}</div>
+          </button>
+        );
+      })}
+    </div>
 
-      {/* CTA */}
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={onSubmit}
-        disabled={loading}
-        className="px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 
-        text-white font-medium shadow-lg flex items-center gap-2"
-      >
-        {loading ? <Loader2 className="animate-spin" size={16} /> : "Start tasting"}
-        <ArrowRight size={16} />
-      </motion.button>
-    </section>
-  );
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onSubmit}
+      disabled={loading}
+      className="w-full py-4 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 
+      text-white text-lg font-medium shadow-xl shadow-purple-500/20 
+      hover:shadow-purple-500/40 transition-all duration-300 flex items-center justify-center gap-2"
+    >
+      {loading ? (
+        <Loader2 className="animate-spin" size={18} />
+      ) : (
+        "Start discovering"
+      )}
+      <ArrowRight size={18} />
+    </motion.button>
+  </div>
+</section>
+
+);
 }
