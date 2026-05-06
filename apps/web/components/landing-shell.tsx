@@ -218,10 +218,6 @@
 //   );
 // }
 
-<h1 style={{ color: "red" }}>
-  THIS IS NEW BUILD TEST
-</h1>
-
 "use client";
 
 import { motion } from "framer-motion";
@@ -234,7 +230,12 @@ type LandingShellProps = {
 export function LandingShell({ onStart }: LandingShellProps) {
   return (
     <section className="flex flex-col justify-center items-center text-center min-h-[70vh] px-4">
-      
+
+      {/* TEST LINE (visible proof) */}
+      <h1 style={{ color: "red", fontSize: "30px" }}>
+        THIS IS NEW BUILD TEST
+      </h1>
+
       {/* Badge */}
       <div className="flex items-center gap-2 text-sm text-white/50 mb-6">
         <Sparkles size={16} />
