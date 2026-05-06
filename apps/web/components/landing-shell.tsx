@@ -221,34 +221,33 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 type LandingShellProps = {
 onStart: () => void;
 };
 
 export function LandingShell({ onStart }: LandingShellProps) {
-return ( <section className="flex items-center justify-center min-h-screen px-6">
+return ( <section className="min-h-screen flex items-center px-6">
 
-  <div className="max-w-2xl w-full text-center">
+  <div className="max-w-3xl">
 
-    {/* Badge */}
-    <div className="inline-flex items-center gap-2 text-sm text-white/60 mb-6 px-4 py-2 rounded-full border border-white/10">
-      <Sparkles size={14} />
-      Smart English-only recommendations
-    </div>
+    {/* Small label */}
+    <p className="text-sm text-white/40 mb-4">
+      English-only smart recommender
+    </p>
 
     {/* Headline */}
-    <h1 className="text-4xl md:text-5xl font-semibold leading-tight tracking-tight">
-      Your next obsession <br />
+    <h1 className="text-5xl md:text-6xl font-semibold leading-tight">
+      Stop wasting time <br />
       <span className="text-purple-400">
-        starts here.
+        finding something to watch.
       </span>
     </h1>
 
     {/* Subtext */}
-    <p className="mt-6 text-base md:text-lg text-white/60 leading-relaxed">
-      Tell us what you enjoy. We’ll find something you’ll actually want to watch tonight — no endless scrolling.
+    <p className="mt-6 text-lg text-white/60 max-w-xl">
+      Tell us what you like. We’ll give you one sharp recommendation — not a list of 100.
     </p>
 
     {/* CTA */}
@@ -256,14 +255,14 @@ return ( <section className="flex items-center justify-center min-h-screen px-6"
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={onStart}
-      className="mt-10 px-6 py-3 rounded-full bg-purple-600 hover:bg-purple-500
-      text-white font-medium shadow-md transition-all flex items-center gap-2 mx-auto"
+      className="mt-10 px-8 py-4 rounded-full bg-purple-600 hover:bg-purple-500
+      text-white text-lg font-medium shadow-lg transition-all flex items-center gap-2"
     >
-      Find my next show
-      <ArrowRight size={16} />
+      Get my recommendation
+      <ArrowRight size={18} />
     </motion.button>
 
-    {/* Hint */}
+    {/* Trust line */}
     <p className="mt-4 text-sm text-white/40">
       Takes less than 30 seconds
     </p>
