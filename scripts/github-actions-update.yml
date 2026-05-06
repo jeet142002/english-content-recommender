@@ -21,7 +21,7 @@ jobs:
         
     - name: Install dependencies
       run: |
-        cd apps/recommender-api
+        cd apps/recommender_api
         pip install -r requirements.txt
         
     - name: Run TMDB update

@@ -1,0 +1,15 @@
+2026-05-05 17:22:29,920 - INFO - ==================================================
+2026-05-05 17:22:29,920 - INFO - Starting TMDB data update at 2026-05-05 17:22:29.920183
+2026-05-05 17:22:29,920 - ERROR - Missing required environment variables: ['TMDB_API_KEY', 'TMDB_API_TOKEN']
+2026-05-05 17:24:28,998 - INFO - ==================================================
+2026-05-05 17:24:28,999 - INFO - Starting TMDB data update at 2026-05-05 17:24:28.998397
+2026-05-05 17:24:28,999 - INFO - Starting TMDB data ingestion...
+2026-05-05 17:43:40,043 - INFO - ==================================================
+2026-05-05 17:43:40,043 - INFO - Starting TMDB data update at 2026-05-05 17:43:40.043060
+2026-05-05 17:43:40,043 - ERROR - Missing required environment variables: ['TMDB_API_KEY', 'TMDB_API_TOKEN']
+2026-05-05 17:46:17,500 - INFO - ==================================================
+2026-05-05 17:46:17,500 - INFO - Starting TMDB data update at 2026-05-05 17:46:17.500748
+2026-05-05 17:46:17,500 - ERROR - Missing required environment variables: ['TMDB_API_KEY', 'TMDB_API_TOKEN']
+2026-05-06 10:17:07,626 - INFO - ==================================================
+2026-05-06 10:17:07,626 - INFO - Starting TMDB data update at 2026-05-06 10:17:07.626202
+2026-05-06 10:17:07,626 - INFO - Starting TMDB data ingestion...

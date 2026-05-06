@@ -10,8 +10,8 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-# Add the recommender-api directory to Python path
-sys.path.append(str(Path(__file__).parent.parent / "apps" / "recommender-api"))
+# Add the recommender_api directory to Python path
+sys.path.append(str(Path(__file__).parent.parent / "apps" / "recommender_api"))
 
 from ingest_tmdb_catalog import main as ingest_main
 

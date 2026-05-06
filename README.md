@@ -5,7 +5,7 @@ A research-first movie and web-series recommendation app for English-language co
 ## Workspace
 
 - `apps/web`: Next.js frontend and edge-friendly API routes
-- `apps/recommender-api`: FastAPI recommender service
+- `apps/recommender_api`: FastAPI recommender service
 - `packages/shared-types`: shared TypeScript contracts
 - `data/seeds`: local seed catalog
 - `docs`: architecture and modeling notes
@@ -24,7 +24,7 @@ npm run dev:web
 ```bash
 python -m venv .venv
 .venv/Scripts/activate
-pip install -r apps/recommender-api/requirements.txt
+pip install -r apps/recommender_api/requirements.txt
 npm run dev:api
 ```
 
@@ -37,9 +37,9 @@ The checked-in seed catalog is intentionally small. To generate a larger local c
 ```powershell
 $env:TMDB_API_KEY="your_tmdb_api_key"
 $env:OMDB_API_KEY="your_omdb_key" # optional
-.\.venv\Scripts\python.exe apps\recommender-api\ingest_tmdb_catalog.py --limit 120 --region US
+.\.venv\Scripts\python.exe apps\recommender_api\ingest_tmdb_catalog.py --limit 120 --region US
 $env:CATALOG_PATH="data/seeds/english_titles.generated.json"
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir apps/recommender-api --port 8000
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir apps/recommender_api --port 8000
 ```
 
 Use `--region IN`, `--region US`, or another TMDB watch-provider region depending on the platform availability you want to display.

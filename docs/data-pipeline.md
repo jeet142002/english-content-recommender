@@ -62,14 +62,14 @@ Local prototype:
 
 ## Local TMDB ingestion
 
-`apps/recommender-api/ingest_tmdb_catalog.py` can generate a larger local JSON catalog:
+`apps/recommender_api/ingest_tmdb_catalog.py` can generate a larger local JSON catalog:
 
 ```powershell
 $env:TMDB_API_KEY="your_tmdb_api_key"
 $env:OMDB_API_KEY="your_omdb_key" # optional
-.\.venv\Scripts\python.exe apps\recommender-api\ingest_tmdb_catalog.py --limit 120 --region US
+.\.venv\Scripts\python.exe apps\recommender_api\ingest_tmdb_catalog.py --limit 120 --region US
 $env:CATALOG_PATH="data/seeds/english_titles.generated.json"
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir apps/recommender-api --port 8000
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir apps/recommender_api --port 8000
 ```
 
 This keeps the app usable with the small checked-in seed while giving development a path to 100+ real titles without hand-writing metadata. A production catalog should move this into a scheduled ingestion job and persist normalized titles in the database.
