@@ -6,7 +6,8 @@ import type {
   SessionTitleResponse,
 } from "./types";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const directApiBaseUrl = process.env.NEXT_PUBLIC_RECOMMENDER_API_BASE_URL?.replace(/\/$/, "");
+const BASE_URL = directApiBaseUrl || "/api";
 
 async function apiFetch<T>(path: string, body?: object): Promise<T> {
   const url = `${BASE_URL}${path}`;
@@ -59,5 +60,5 @@ export function stopSession(sessionId: string) {
 }
 
 export function healthcheck() {
-  return apiFetch<{ ok: boolean; catalogSize: number }>("/health");
+  return apiFetch<{ ok: boolean; catalogSize: number; sessionStore?: string }>("/health");
 }

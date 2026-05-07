@@ -17,6 +17,7 @@ from apps.recommender_api.app.models.schemas import (
 )
 
 from apps.recommender_api.app.services.catalog import by_id, load_catalog
+from apps.recommender_api.app.services.session_store import JsonSessionStore
 
 
 WEIGHTS = {"like": 1.0, "dislike": -0.85, "not_seen": 0.0}
@@ -43,20 +44,17 @@ def feature_tokens(title: Title) -> list[str]:
 
 class RecommenderService:
     def __init__(self) -> None:
-        self.sessions: dict[str, SessionState] = {}
+        self.session_store = JsonSessionStore.from_env()
         self.catalog = load_catalog()
 
     def start_session(self, preferences: SessionPreferences) -> SessionTitleResponse:
         session_id = str(uuid4())
         state = SessionState(sessionId=session_id, preferences=preferences)
-        self.sessions[session_id] = state
+        self.session_store.save(state)
         return self.next_title(session_id)
 
     def get_state(self, session_id: str) -> SessionState:
-        state = self.sessions.get(session_id)
-        if not state:
-            raise KeyError(session_id)
-        return state
+        return self.session_store.get(session_id)
 
     def filtered_titles(self, state: SessionState) -> list[Title]:
         return [
@@ -86,6 +84,7 @@ class RecommenderService:
         title = selected
         state.shownTitleIds.append(title.id)
         state.confidence = self._estimate_confidence(state)
+        self.session_store.save(state)
         step = len(state.shownTitleIds)
         return SessionTitleResponse(sessionId=session_id, step=step, confidence=state.confidence, title=title)
 
@@ -95,6 +94,7 @@ class RecommenderService:
         state.events.append(event)
         self._update_profile(state, by_id(payload.titleId), payload.value)
         state.confidence = self._estimate_confidence(state)
+        self.session_store.save(state)
         return self.next_title(payload.sessionId)
 
     def stop(self, session_id: str) -> RecommendationResult:

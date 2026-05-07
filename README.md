@@ -29,6 +29,9 @@ npm run dev:api
 ```
 
 The web app expects `RECOMMENDER_API_BASE_URL=http://localhost:8000`.
+Browser requests go through the Next.js `/api/*` proxy by default. Only set
+`NEXT_PUBLIC_RECOMMENDER_API_BASE_URL` if you intentionally want the browser to
+call the FastAPI service directly.
 
 ### Larger catalog
 
@@ -64,3 +67,10 @@ The local implementation ships with a hybrid metadata-driven scoring engine plus
 - popularity dampening and diversity-aware final reranking
 
 See `docs/modeling.md` for details.
+
+## Production notes
+
+- `CATALOG_PATH` controls which JSON catalog the FastAPI service loads. The default is `data/seeds/english_titles.generated.json`.
+- `SESSION_STORE_PATH` persists session state across backend restarts. On Railway, point it at a mounted volume path such as `/data/recommender_sessions.json`.
+- `ALLOWED_ORIGINS` should include your Vercel domain if you expose the backend directly to browsers.
+- Vercel should set `RECOMMENDER_API_BASE_URL` so its `/api/*` routes can reach the Railway backend.

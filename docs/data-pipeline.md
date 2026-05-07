@@ -58,7 +58,7 @@ Production target:
 Local prototype:
 
 - JSON seed catalog
-- in-memory session state
+- JSON-backed session state through `SESSION_STORE_PATH`
 
 ## Local TMDB ingestion
 
@@ -75,3 +75,6 @@ $env:CATALOG_PATH="data/seeds/english_titles.generated.json"
 This keeps the app usable with the small checked-in seed while giving development a path to 100+ real titles without hand-writing metadata. A production catalog should move this into a scheduled ingestion job and persist normalized titles in the database.
 `OMDB_API_KEY` is optional and is only needed for IMDb ratings.
 If you have TMDB's API Read Access Token instead of the API key, set `TMDB_API_TOKEN` instead of `TMDB_API_KEY`.
+
+`scripts/update-tmdb-data.py` writes the default generated catalog at `data/seeds/english_titles.generated.json`.
+The GitHub Actions workflow stages that generated file so scheduled updates affect the same catalog the backend loads by default.

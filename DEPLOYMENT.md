@@ -20,9 +20,14 @@ railway up
 
 **Environment Variables for Railway:**
 - `TMDB_API_KEY=your_key_here`
-- `TMDB_API_TOKEN=your_token_here`
+- `TMDB_API_TOKEN=your_token_here` (optional if `TMDB_API_KEY` is set)
 - `OMDB_API_KEY=your_omdb_key` (optional)
-- `DATABASE_URL=postgresql://...` (auto-created)
+- `CATALOG_PATH=data/seeds/english_titles.generated.json`
+- `SESSION_STORE_PATH=/data/recommender_sessions.json`
+- `ALLOWED_ORIGINS=https://your-vercel-app.vercel.app`
+
+For `SESSION_STORE_PATH=/data/...`, attach a Railway volume mounted at `/data`.
+Without a volume, sessions still work but may reset whenever the backend restarts.
 
 ### 3. Deploy Frontend (Vercel)
 ```bash
@@ -34,7 +39,11 @@ vercel --prod
 ```
 
 **Environment Variables for Vercel:**
-- `NEXT_PUBLIC_API_URL=https://your-app.railway.app`
+- `RECOMMENDER_API_BASE_URL=https://your-app.railway.app`
+
+The browser uses the web app's `/api/*` routes by default. Only set
+`NEXT_PUBLIC_RECOMMENDER_API_BASE_URL` if you intentionally want browser requests
+to bypass the Vercel proxy and call Railway directly.
 
 ### 4. Update Data
 ```bash
@@ -85,7 +94,8 @@ python scripts/update-tmdb-data.py
 | Feature | Current | Production Ready |
 |---------|---------|------------------|
 | Database | JSON file | PostgreSQL |
-| Updates | Manual | Automated |
+| Sessions | JSON file via `SESSION_STORE_PATH` | Redis/PostgreSQL |
+| Updates | Manual script | Automated GitHub Actions |
 | Users | Unlimited | Unlimited |
 | Cost | Free tier | ~$10-30/month |
 
@@ -123,8 +133,9 @@ images: {
 
 **Database Connection:**
 ```python
-# Use environment variable:
-DATABASE_URL = os.getenv("DATABASE_URL")
+# Current implementation uses SESSION_STORE_PATH for restart-safe sessions.
+# Move to DATABASE_URL when you add multi-instance session storage.
+SESSION_STORE_PATH = os.getenv("SESSION_STORE_PATH")
 ```
 
 ---

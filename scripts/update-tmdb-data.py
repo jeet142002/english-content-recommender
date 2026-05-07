@@ -33,12 +33,9 @@ def main():
     logger.info(f"Starting TMDB data update at {start_time}")
     
     try:
-        # Check required environment variables
-        required_vars = ['TMDB_API_KEY', 'TMDB_API_TOKEN']
-        missing_vars = [var for var in required_vars if not os.getenv(var)]
-        
-        if missing_vars:
-            logger.error(f"Missing required environment variables: {missing_vars}")
+        # The ingester accepts either TMDB's v3 API key or v4 read token.
+        if not (os.getenv('TMDB_API_KEY') or os.getenv('TMDB_API_TOKEN')):
+            logger.error("TMDB_API_KEY or TMDB_API_TOKEN is required")
             sys.exit(1)
         
         # Run the ingestion process

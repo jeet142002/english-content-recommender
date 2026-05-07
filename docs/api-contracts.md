@@ -9,7 +9,8 @@ Response:
 ```json
 {
   "ok": true,
-  "catalogSize": 15
+  "catalogSize": 109,
+  "sessionStore": ".tmp/recommender_sessions.json"
 }
 ```
 
@@ -73,4 +74,5 @@ Each feedback event should track:
 
 ## Web API layer
 
-The Next.js app exposes matching `/api/*` route handlers and proxies them to the FastAPI recommender service through `RECOMMENDER_API_BASE_URL`.
+The Next.js app exposes matching `/api/*` route handlers and proxies them to the FastAPI recommender service through the server-only `RECOMMENDER_API_BASE_URL`.
+The browser should use the proxy path by default. `NEXT_PUBLIC_RECOMMENDER_API_BASE_URL` is only for intentional direct browser-to-backend deployments.
