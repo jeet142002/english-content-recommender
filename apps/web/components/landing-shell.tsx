@@ -1,37 +1,17 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, ThumbsUp, Eye, Lightbulb, ArrowRight, Clock } from "lucide-react";
+import { ArrowRight, Clock3, Eye, Sparkles, ThumbsUp } from "lucide-react";
 
 type LandingShellProps = {
   onStart: () => void;
 };
 
-const steps = [
-  { icon: ThumbsUp, text: "Like or reject one title at a time" },
-  { icon: Eye, text: "Treat not seen as unfamiliar, not negative" },
-  { icon: Lightbulb, text: "Get one confident recommendation with reasons" },
+const cues = [
+  { icon: ThumbsUp, label: "Taste over genres", text: "A few reactions say more than a long survey." },
+  { icon: Eye, label: "Unseen is neutral", text: "Skip unfamiliar titles without hurting the read." },
+  { icon: Sparkles, label: "One confident pick", text: "Get a final choice with human-readable reasons." },
 ];
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] as const },
-  },
-};
 
 export function LandingShell({ onStart }: LandingShellProps) {
   return (
@@ -39,177 +19,233 @@ export function LandingShell({ onStart }: LandingShellProps) {
       <style jsx>{`
         .landing-section {
           display: grid;
-          gap: var(--space-8);
-          min-height: calc(100vh - 160px);
+          min-height: calc(100vh - 92px);
           align-items: center;
+          padding: var(--space-8) 0 var(--space-12);
         }
-        
+
         .landing-grid {
           display: grid;
-          grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+          gap: var(--space-8);
+          align-items: start;
+        }
+
+        .hero-copy {
+          position: relative;
+          z-index: 2;
+          display: grid;
           gap: var(--space-6);
-          align-items: stretch;
+          max-width: 980px;
         }
-        
-        @media (max-width: 900px) {
-          .landing-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-        
-        .badge {
+
+        .eyebrow {
           display: inline-flex;
+          width: fit-content;
           align-items: center;
           gap: var(--space-2);
           padding: var(--space-2) var(--space-3);
+          border: 1px solid rgba(246, 196, 107, 0.22);
           border-radius: var(--radius-full);
-          background: var(--accent-soft);
-          color: var(--text);
+          background: var(--gold-soft);
+          color: #ffe2a8;
           font-size: 13px;
-          font-weight: 500;
-          letter-spacing: 0.02em;
-          margin-bottom: var(--space-5);
+          font-weight: 900;
         }
-        
-        .main-title {
-          font-size: clamp(2.5rem, 6vw, 4.5rem);
-          font-weight: 800;
-          line-height: 1.05;
-          letter-spacing: -0.03em;
-          margin: 0;
-          max-width: 680px;
-          background: linear-gradient(135deg, var(--text) 0%, var(--text-secondary) 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+
+        .hero-title {
+          max-width: 760px;
+          color: var(--text);
+          font-size: clamp(48px, 8.5vw, 104px);
+          font-weight: 900;
+          letter-spacing: 0;
+          line-height: 0.94;
         }
-        
+
+        .hero-title span {
+          display: block;
+          color: var(--text-soft);
+        }
+
         .subtitle {
-          margin-top: var(--space-5);
-          margin-bottom: 0;
-          max-width: 520px;
-          font-size: 17px;
-          line-height: 1.7;
+          max-width: 610px;
           color: var(--text-secondary);
+          font-size: clamp(17px, 2vw, 21px);
+          line-height: 1.7;
         }
-        
-        .cta-group {
+
+        .cta-row {
           display: flex;
-          gap: var(--space-4);
-          align-items: center;
-          margin-top: var(--space-8);
           flex-wrap: wrap;
+          align-items: center;
+          gap: var(--space-4);
         }
-        
-        .cta-hint {
+
+        .time-hint {
           display: inline-flex;
           align-items: center;
           gap: var(--space-2);
           color: var(--text-secondary);
           font-size: 14px;
+          font-weight: 700;
         }
-        
-        .steps-container {
+
+        .cue-row {
           display: grid;
-          gap: var(--space-4);
-          align-content: start;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: var(--space-3);
+          padding-top: var(--space-3);
         }
-        
-        .step-card {
-          display: flex;
-          align-items: flex-start;
-          gap: var(--space-4);
+
+        .cue {
+          display: grid;
+          gap: var(--space-2);
           padding: var(--space-4);
-          border-radius: var(--radius-lg);
-          background: var(--surface);
           border: 1px solid var(--line);
-          transition: all var(--transition-base);
+          border-radius: var(--radius-lg);
+          background: rgba(255, 255, 255, 0.045);
         }
-        
-        .step-card:hover {
-          background: var(--surface-hover);
-          border-color: var(--line-strong);
-          transform: translateY(-2px);
+
+        .cue-icon {
+          display: grid;
+          width: 34px;
+          height: 34px;
+          place-items: center;
+          border-radius: 12px;
+          background: var(--teal-soft);
+          color: var(--teal);
         }
-        
-        .step-icon {
+
+        .cue-label {
+          color: var(--text);
+          font-size: 13px;
+          font-weight: 900;
+        }
+
+        .cue-text {
+          color: var(--text-muted);
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
+        .taste-card {
+          display: grid;
+          gap: var(--space-3);
+          padding: var(--space-5);
+          border: 1px solid rgba(255, 255, 255, 0.16);
+          border-radius: var(--radius-xl);
+          background: rgba(11, 13, 21, 0.88);
+          box-shadow: var(--shadow-soft);
+          backdrop-filter: blur(18px);
+        }
+
+        .taste-card-header {
           display: flex;
           align-items: center;
-          justify-content: center;
-          width: 40px;
-          height: 40px;
-          border-radius: var(--radius-md);
-          background: var(--accent-soft);
-          color: var(--accent);
-          flex-shrink: 0;
+          justify-content: space-between;
+          gap: var(--space-3);
+          color: var(--text-soft);
+          font-size: 13px;
+          font-weight: 900;
         }
-        
-        .step-number {
-          font-size: 12px;
-          font-weight: 700;
-          color: var(--accent);
-          margin-bottom: var(--space-1);
+
+        .signal-bar {
+          height: 9px;
+          overflow: hidden;
+          border-radius: var(--radius-full);
+          background: rgba(255, 255, 255, 0.09);
         }
-        
-        .step-text {
-          font-size: 15px;
-          line-height: 1.5;
-          color: var(--text);
+
+        .signal-fill {
+          width: 72%;
+          height: 100%;
+          border-radius: inherit;
+          background: linear-gradient(90deg, var(--teal), var(--accent), var(--gold));
+        }
+
+        .taste-copy {
+          color: var(--text-secondary);
+          font-size: 13px;
+          line-height: 1.55;
+        }
+
+        @media (max-width: 1400px) {
+          .landing-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .hero-copy {
+            max-width: none;
+          }
+        }
+
+        @media (max-width: 680px) {
+          .landing-section {
+            align-items: start;
+            padding-top: var(--space-4);
+          }
+
+          .hero-title {
+            font-size: clamp(42px, 15vw, 70px);
+          }
+
+          .cta-row,
+          .time-hint {
+            width: 100%;
+          }
+
+          .cue-row {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
 
       <div className="landing-grid">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          className="hero-copy"
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-          className="glass"
-          style={{ padding: "var(--space-8)", borderRadius: "var(--radius-xl)" }}
+          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="badge">
-            <Sparkles size={14} />
-            English movies and series only
+          <div className="eyebrow">
+            <Sparkles size={15} />
+            Built for tonight&apos;s English-only watch
           </div>
-          
-          <h1 className="main-title">
-            Let&apos;s find your next obsession.
+
+          <h1 className="hero-title">
+            Find the one.
+            <span>Skip the scroll.</span>
           </h1>
-          
+
           <p className="subtitle">
-            Rate a handful of titles. The recommender reads your taste in real time and returns one
-            sharp English-only pick for tonight.
+            React to a handful of movies and series. In under a minute, get one confident pick
+            that feels like it came from your taste, not a generic top-ten list.
           </p>
-          
-          <div className="cta-group">
-            <button onClick={onStart} className="btn btn-primary btn-lg">
-              Recommend me something great
+
+          <div className="cta-row">
+            <button
+              onClick={onStart}
+              onPointerDown={onStart}
+              className="btn btn-primary btn-lg"
+              data-testid="landing-start"
+            >
+              Start the taste test
               <ArrowRight size={18} />
             </button>
-            <span className="cta-hint">
-              <Clock size={14} />
-              Usually takes about 30 seconds
+            <span className="time-hint">
+              <Clock3 size={16} />
+              Usually 5 to 7 quick reactions
             </span>
           </div>
-        </motion.div>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="glass"
-          style={{ padding: "var(--space-6)", borderRadius: "var(--radius-xl)" }}
-        >
-          <div className="steps-container">
-            {steps.map((step, index) => (
-              <motion.div key={step.text} variants={itemVariants} className="step-card">
-                <div className="step-icon">
-                  <step.icon size={20} strokeWidth={2} />
+          <div className="cue-row" aria-label="How it works">
+            {cues.map((cue) => (
+              <div key={cue.label} className="cue">
+                <div className="cue-icon">
+                  <cue.icon size={17} />
                 </div>
-                <div>
-                  <div className="step-number">Step 0{index + 1}</div>
-                  <div className="step-text">{step.text}</div>
-                </div>
-              </motion.div>
+                <div className="cue-label">{cue.label}</div>
+                <div className="cue-text">{cue.text}</div>
+              </div>
             ))}
           </div>
         </motion.div>
@@ -217,4 +253,3 @@ export function LandingShell({ onStart }: LandingShellProps) {
     </section>
   );
 }
-
