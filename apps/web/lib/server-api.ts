@@ -1,9 +1,17 @@
-const REC_API_BASE = (process.env.RECOMMENDER_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
+const configuredApiBaseUrl =
+  process.env.RECOMMENDER_API_BASE_URL ??
+  process.env.NEXT_PUBLIC_RECOMMENDER_API_BASE_URL ??
+  process.env.NEXT_PUBLIC_API_URL;
+
+const REC_API_BASE = (configuredApiBaseUrl ?? "http://localhost:8000").replace(/\/$/, "");
 
 export async function proxyToRecommender(path: string, init?: RequestInit) {
-  if (!process.env.RECOMMENDER_API_BASE_URL && process.env.VERCEL) {
+  if (!configuredApiBaseUrl && process.env.VERCEL) {
     return Response.json(
-      { detail: "RECOMMENDER_API_BASE_URL is not configured for the web deployment." },
+      {
+        detail:
+          "RECOMMENDER_API_BASE_URL is not configured for the web deployment. Set it to your Railway backend URL.",
+      },
       { status: 500 },
     );
   }

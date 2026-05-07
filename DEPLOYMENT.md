@@ -44,6 +44,8 @@ vercel --prod
 The browser uses the web app's `/api/*` routes by default. Only set
 `NEXT_PUBLIC_RECOMMENDER_API_BASE_URL` if you intentionally want browser requests
 to bypass the Vercel proxy and call Railway directly.
+For compatibility, the proxy also accepts the older `NEXT_PUBLIC_API_URL` name,
+but `RECOMMENDER_API_BASE_URL` is the preferred production variable.
 
 ### 4. Update Data
 ```bash

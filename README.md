@@ -74,3 +74,4 @@ See `docs/modeling.md` for details.
 - `SESSION_STORE_PATH` persists session state across backend restarts. On Railway, point it at a mounted volume path such as `/data/recommender_sessions.json`.
 - `ALLOWED_ORIGINS` should include your Vercel domain if you expose the backend directly to browsers.
 - Vercel should set `RECOMMENDER_API_BASE_URL` so its `/api/*` routes can reach the Railway backend.
+- The Vercel proxy still recognizes the legacy `NEXT_PUBLIC_API_URL` variable, but `RECOMMENDER_API_BASE_URL` is preferred.
