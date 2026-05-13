@@ -1,19 +1,9 @@
 "use client";
 
-import Image from "next/image";
-import { motion } from "framer-motion";
-import {
-  BadgeCheck,
-  Eye,
-  Loader2,
-  Palette,
-  Sparkles,
-  ThumbsDown,
-  ThumbsUp,
-  TimerReset,
-  Users,
-} from "lucide-react";
+import { motion, type PanInfo } from "framer-motion";
+import { Eye, Heart, Info, Loader2, RotateCcw, ThumbsDown } from "lucide-react";
 
+import { PosterImage } from "@/components/poster-image";
 import type { FeedbackValue, SessionTitleResponse } from "@/lib/types";
 
 type TitleCardProps = {
@@ -26,58 +16,71 @@ type TitleCardProps = {
 const actions: {
   value: FeedbackValue;
   label: string;
-  sublabel: string;
-  icon: typeof ThumbsUp;
+  icon: typeof Heart;
   variant: "like" | "dislike" | "skip";
 }[] = [
-  { value: "like", label: "Loved the vibe", sublabel: "More like this", icon: ThumbsUp, variant: "like" },
-  { value: "dislike", label: "Not for me", sublabel: "Move away", icon: ThumbsDown, variant: "dislike" },
-  { value: "not_seen", label: "Haven't seen it", sublabel: "Keep it neutral", icon: Eye, variant: "skip" },
+  { value: "dislike", label: "Pass", icon: ThumbsDown, variant: "dislike" },
+  { value: "not_seen", label: "Unseen", icon: Eye, variant: "skip" },
+  { value: "like", label: "Lock in", icon: Heart, variant: "like" },
 ];
 
-function confidenceCopy(confidence: number) {
-  if (confidence < 0.28) {
-    return "First signal";
-  }
-  if (confidence < 0.58) {
-    return "Taste forming";
-  }
-  return "Strong read";
-}
-
 export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardProps) {
-  const { title, step, confidence } = payload;
+  const { title, step } = payload;
   const runtimeLabel = title.kind === "movie" ? `${title.runtime} min` : `${title.seasons ?? 0} seasons`;
-  const matchPercent = Math.round(confidence * 100);
+
+  function handleDragEnd(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
+    if (loading) {
+      return;
+    }
+
+    if (info.offset.x > 120) {
+      onFeedback("like");
+      return;
+    }
+
+    if (info.offset.x < -120) {
+      onFeedback("dislike");
+      return;
+    }
+
+    if (info.offset.y > 130) {
+      onFeedback("not_seen");
+    }
+  }
 
   return (
-    <motion.section
-      className="rating-shell"
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
-    >
+    <section className="deck-shell">
       <style jsx>{`
-        .rating-shell {
+        .deck-shell {
+          position: relative;
+          display: grid;
+          min-height: calc(100vh - 116px);
+          place-items: center;
+          padding: var(--space-4) 0 var(--space-8);
+        }
+
+        .deck-card {
           position: relative;
           overflow: hidden;
           display: grid;
-          grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.1fr);
-          gap: var(--space-8);
-          min-height: 620px;
-          padding: var(--space-6);
-          border: 1px solid var(--line);
-          border-radius: var(--radius-2xl);
-          background: var(--panel-strong);
-          box-shadow: var(--shadow);
+          width: min(100%, 980px);
+          min-height: 700px;
+          border: 1px solid rgba(255, 255, 255, 0.13);
+          border-radius: var(--radius-sm);
+          background: #0b0e16;
+          box-shadow: 0 30px 90px rgba(0, 0, 0, 0.54);
+          touch-action: pan-y;
+          user-select: none;
+        }
+
+        .backdrop,
+        .backdrop img {
+          position: absolute;
+          inset: 0;
         }
 
         .backdrop {
-          position: absolute;
-          inset: 0;
-          opacity: 0.22;
-          filter: blur(26px) saturate(1.2);
-          transform: scale(1.08);
+          opacity: 0.72;
         }
 
         .backdrop::after {
@@ -85,129 +88,100 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           position: absolute;
           inset: 0;
           background:
-            linear-gradient(90deg, rgba(7, 8, 13, 0.96), rgba(7, 8, 13, 0.66)),
-            linear-gradient(180deg, transparent, rgba(7, 8, 13, 0.94));
+            linear-gradient(90deg, rgba(7, 8, 13, 0.9) 0%, rgba(7, 8, 13, 0.28) 45%, rgba(7, 8, 13, 0.8) 100%),
+            linear-gradient(180deg, rgba(7, 8, 13, 0.1) 0%, rgba(7, 8, 13, 0.24) 36%, rgba(7, 8, 13, 0.95) 100%);
         }
 
-        .poster-column,
-        .content-column {
-          position: relative;
-          z-index: 1;
-        }
-
-        .poster-column {
-          display: grid;
-          align-content: center;
-          justify-items: center;
-          gap: var(--space-4);
-        }
-
-        .poster-wrap {
-          position: relative;
-          width: min(100%, 360px);
-          overflow: hidden;
-          aspect-ratio: 2 / 3;
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          border-radius: var(--radius-2xl);
-          background: #10131d;
-          box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
-        }
-
-        .poster-wrap::after {
-          content: "";
+        .poster-focus {
           position: absolute;
-          inset: 0;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: inherit;
-          pointer-events: none;
+          top: 50%;
+          left: 50%;
+          overflow: hidden;
+          width: min(42vw, 360px);
+          aspect-ratio: 2 / 3;
+          transform: translate(-50%, -54%);
+          border: 1px solid rgba(255, 255, 255, 0.16);
+          border-radius: var(--radius-sm);
+          background: #10131d;
+          box-shadow: 0 28px 78px rgba(0, 0, 0, 0.58);
         }
 
-        .poster-caption {
+        .topbar {
+          position: relative;
+          z-index: 2;
           display: flex;
-          width: min(100%, 360px);
           align-items: center;
           justify-content: space-between;
-          gap: var(--space-3);
-          color: var(--text-secondary);
-          font-size: 12px;
-          font-weight: 800;
+          gap: var(--space-4);
+          padding: var(--space-5);
         }
 
-        .signal-pill {
+        .scene-pill {
           display: inline-flex;
           align-items: center;
           gap: var(--space-2);
           padding: var(--space-2) var(--space-3);
-          border: 1px solid rgba(143, 123, 255, 0.36);
+          border: 1px solid rgba(255, 255, 255, 0.14);
           border-radius: var(--radius-full);
-          background: var(--accent-soft);
-          color: #dcd4ff;
-        }
-
-        .content-column {
-          display: grid;
-          align-content: center;
-          gap: var(--space-5);
-          min-width: 0;
-        }
-
-        .topline {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          justify-content: space-between;
-          gap: var(--space-3);
-        }
-
-        .taste-step {
-          display: inline-flex;
-          align-items: center;
-          gap: var(--space-2);
-          color: var(--gold);
-          font-size: 13px;
+          background: rgba(7, 8, 13, 0.52);
+          color: var(--text-soft);
+          font-size: 12px;
           font-weight: 900;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
+          backdrop-filter: blur(16px);
+        }
+
+        .pulse {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: var(--teal);
+          box-shadow: 0 0 0 0 rgba(77, 212, 189, 0.42);
+          animation: pulse 1.8s infinite;
         }
 
         .stop-button {
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: var(--space-2);
-          min-height: 40px;
+          min-height: 42px;
           padding: 0 var(--space-4);
-          border: 1px solid var(--line);
+          border: 1px solid rgba(255, 255, 255, 0.14);
           border-radius: var(--radius-full);
-          background: rgba(255, 255, 255, 0.06);
-          color: var(--text-secondary);
+          background: rgba(7, 8, 13, 0.52);
+          color: var(--text);
           font-size: 13px;
           font-weight: 900;
+          backdrop-filter: blur(16px);
           transition:
             transform var(--transition-fast),
-            border-color var(--transition-fast),
             background var(--transition-fast),
-            color var(--transition-fast);
+            border-color var(--transition-fast);
         }
 
         .stop-button:hover:not(:disabled) {
           transform: translateY(-1px);
-          border-color: rgba(246, 196, 107, 0.32);
-          background: var(--gold-soft);
-          color: #ffe2a8;
+          border-color: rgba(246, 196, 107, 0.44);
+          background: rgba(246, 196, 107, 0.16);
         }
 
-        .title-block {
+        .copy-stack {
+          position: relative;
+          z-index: 2;
+          align-self: end;
           display: grid;
+          max-width: 680px;
           gap: var(--space-3);
+          padding: var(--space-5) var(--space-5) 116px;
         }
 
         .title-text {
-          max-width: 760px;
           color: var(--text);
-          font-size: clamp(38px, 6vw, 72px);
+          font-size: 64px;
           font-weight: 900;
           letter-spacing: 0;
-          line-height: 0.98;
+          line-height: 0.96;
+          text-wrap: balance;
         }
 
         .meta-row {
@@ -217,88 +191,88 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           gap: var(--space-2);
           color: var(--text-secondary);
           font-size: 14px;
-          font-weight: 800;
+          font-weight: 850;
         }
 
         .tags-container {
           display: flex;
           flex-wrap: wrap;
           gap: var(--space-2);
+          padding-top: var(--space-1);
         }
 
         .synopsis {
-          max-width: 720px;
+          display: -webkit-box;
+          max-width: 620px;
+          overflow: hidden;
           color: var(--text-soft);
-          font-size: clamp(15px, 1.7vw, 18px);
-          line-height: 1.8;
+          font-size: 16px;
+          font-weight: 600;
+          line-height: 1.55;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 2;
         }
 
-        .details-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: var(--space-3);
+        .details {
+          width: fit-content;
+          color: var(--text-secondary);
+          font-size: 13px;
+          font-weight: 800;
         }
 
-        .detail-card {
-          display: grid;
-          gap: var(--space-2);
-          min-width: 0;
-          padding: var(--space-4);
-          border: 1px solid var(--line);
-          border-radius: var(--radius-lg);
-          background: rgba(255, 255, 255, 0.055);
-        }
-
-        .detail-label {
-          display: flex;
+        .details summary {
+          display: inline-flex;
           align-items: center;
           gap: var(--space-2);
-          color: var(--text-muted);
-          font-size: 12px;
-          font-weight: 900;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
+          cursor: pointer;
+          list-style: none;
         }
 
-        .detail-value {
-          overflow-wrap: anywhere;
-          color: var(--text);
-          font-size: 14px;
-          font-weight: 700;
-          line-height: 1.5;
+        .details summary::-webkit-details-marker {
+          display: none;
         }
 
-        .actions-panel {
+        .details-panel {
           display: grid;
-          gap: var(--space-3);
-          padding-top: var(--space-2);
+          max-width: 620px;
+          gap: var(--space-2);
+          margin-top: var(--space-3);
+          padding: var(--space-3);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: var(--radius-sm);
+          background: rgba(7, 8, 13, 0.64);
+          color: var(--text-soft);
+          backdrop-filter: blur(16px);
         }
 
-        .actions-label {
-          color: var(--text-muted);
-          font-size: 12px;
-          font-weight: 900;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
+        .action-dock {
+          position: absolute;
+          right: var(--space-5);
+          bottom: var(--space-5);
+          left: var(--space-5);
+          z-index: 4;
+          display: flex;
+          justify-content: center;
+          gap: var(--space-4);
         }
 
-        .actions-container {
+        .action-wrap {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: var(--space-3);
+          justify-items: center;
+          gap: var(--space-2);
         }
 
         .action-button {
           display: grid;
-          grid-template-columns: auto 1fr;
-          gap: var(--space-3);
-          align-items: center;
-          min-height: 74px;
-          padding: var(--space-3) var(--space-4);
-          border: 1px solid var(--line);
-          border-radius: var(--radius-lg);
-          background: rgba(255, 255, 255, 0.06);
-          text-align: left;
+          width: 68px;
+          height: 68px;
+          place-items: center;
+          border: 1px solid rgba(255, 255, 255, 0.16);
+          border-radius: 50%;
+          background: rgba(7, 8, 13, 0.72);
+          color: var(--text);
+          box-shadow: 0 18px 36px rgba(0, 0, 0, 0.36);
+          backdrop-filter: blur(18px);
           transition:
             transform var(--transition-fast),
             border-color var(--transition-fast),
@@ -307,155 +281,159 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
         }
 
         .action-button:hover:not(:disabled) {
-          transform: translateY(-2px);
-        }
-
-        .action-button.like:hover:not(:disabled) {
-          border-color: rgba(43, 214, 111, 0.55);
-          background: rgba(43, 214, 111, 0.13);
-          box-shadow: 0 18px 36px rgba(43, 214, 111, 0.14);
+          transform: translateY(-4px) scale(1.04);
         }
 
         .action-button.dislike:hover:not(:disabled) {
-          border-color: rgba(255, 77, 93, 0.55);
-          background: rgba(255, 77, 93, 0.13);
-          box-shadow: 0 18px 36px rgba(255, 77, 93, 0.14);
+          border-color: rgba(255, 77, 93, 0.62);
+          color: #ff9cab;
+          box-shadow: 0 20px 42px rgba(255, 77, 93, 0.17);
         }
 
         .action-button.skip:hover:not(:disabled) {
-          border-color: rgba(143, 123, 255, 0.55);
-          background: rgba(143, 123, 255, 0.13);
-          box-shadow: 0 18px 36px rgba(143, 123, 255, 0.14);
-        }
-
-        .action-icon {
-          display: grid;
-          width: 40px;
-          height: 40px;
-          place-items: center;
-          border-radius: 14px;
-          background: rgba(255, 255, 255, 0.08);
-        }
-
-        .action-button.like .action-icon {
-          color: var(--success);
-        }
-
-        .action-button.dislike .action-icon {
-          color: var(--error);
-        }
-
-        .action-button.skip .action-icon {
+          border-color: rgba(143, 123, 255, 0.62);
           color: var(--accent-strong);
+          box-shadow: 0 20px 42px rgba(143, 123, 255, 0.18);
         }
 
-        .action-copy {
-          display: grid;
-          gap: 2px;
+        .action-button.like:hover:not(:disabled) {
+          border-color: rgba(43, 214, 111, 0.62);
+          color: #77f0a7;
+          box-shadow: 0 20px 42px rgba(43, 214, 111, 0.18);
         }
 
         .action-label {
-          color: var(--text);
-          font-size: 14px;
+          color: var(--text-muted);
+          font-size: 12px;
           font-weight: 900;
         }
 
-        .action-sublabel {
-          color: var(--text-muted);
-          font-size: 12px;
-          font-weight: 700;
+        @keyframes pulse {
+          70% {
+            box-shadow: 0 0 0 12px rgba(77, 212, 189, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(77, 212, 189, 0);
+          }
         }
 
         @media (max-width: 980px) {
-          .rating-shell {
-            grid-template-columns: 1fr;
-            min-height: auto;
-            padding: var(--space-4);
+          .deck-card {
+            min-height: 720px;
           }
 
-          .poster-column {
-            align-content: start;
+          .poster-focus {
+            top: 42%;
+            width: min(58vw, 340px);
           }
 
-          .poster-wrap,
-          .poster-caption {
-            width: min(100%, 320px);
-          }
-
-          .content-column {
-            align-content: start;
+          .title-text {
+            font-size: 50px;
           }
         }
 
-        @media (max-width: 720px) {
-          .rating-shell {
-            gap: var(--space-5);
-            border-radius: var(--radius-xl);
+        @media (max-width: 640px) {
+          .deck-shell {
+            min-height: calc(100vh - 94px);
+            padding-top: 0;
           }
 
-          .topline {
-            align-items: flex-start;
+          .deck-card {
+            min-height: min(760px, calc(100vh - 110px));
+          }
+
+          .topbar {
+            padding: var(--space-3);
+          }
+
+          .scene-pill {
+            font-size: 11px;
           }
 
           .stop-button {
-            width: 100%;
-            justify-content: center;
+            min-height: 38px;
+            padding: 0 var(--space-3);
+            font-size: 12px;
           }
 
-          .details-grid,
-          .actions-container {
-            grid-template-columns: 1fr;
+          .poster-focus {
+            top: 38%;
+            width: min(68vw, 280px);
+          }
+
+          .copy-stack {
+            gap: var(--space-2);
+            padding: var(--space-4) var(--space-4) 104px;
+          }
+
+          .title-text {
+            font-size: 34px;
+            line-height: 1;
+          }
+
+          .synopsis {
+            font-size: 14px;
+          }
+
+          .action-dock {
+            gap: var(--space-3);
+            bottom: var(--space-4);
           }
 
           .action-button {
-            min-height: 64px;
-          }
-
-          .poster-wrap,
-          .poster-caption {
-            width: min(82vw, 300px);
+            width: 58px;
+            height: 58px;
           }
         }
       `}</style>
 
-      <div className="backdrop" aria-hidden="true">
-        <Image src={title.posterUrl} alt="" fill sizes="100vw" style={{ objectFit: "cover" }} priority />
-      </div>
+      <motion.article
+        className="deck-card"
+        drag={loading ? false : true}
+        dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+        dragElastic={0.18}
+        onDragEnd={handleDragEnd}
+        whileDrag={{ scale: 0.985, rotate: 1.6 }}
+        initial={{ opacity: 0, y: 18, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, x: 80, rotate: 5, scale: 0.96 }}
+        transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <div className="backdrop" aria-hidden="true">
+          <PosterImage src={title.posterUrl} alt="" label={title.title} sizes="100vw" priority showLabel={false} />
+        </div>
 
-      <div className="poster-column">
-        <div className="poster-wrap">
-          <Image
+        <motion.div
+          className="poster-focus"
+          aria-hidden="true"
+          initial={{ y: 12, rotate: -1.5 }}
+          animate={{ y: 0, rotate: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <PosterImage
             src={title.posterUrl}
-            alt={`${title.title} poster`}
-            fill
-            sizes="(max-width: 980px) 82vw, 360px"
-            style={{ objectFit: "cover", objectPosition: "center top" }}
+            alt=""
+            label={title.title}
+            sizes="(max-width: 640px) 68vw, (max-width: 980px) 58vw, 360px"
             priority
+            showLabel={false}
           />
-        </div>
-        <div className="poster-caption">
-          <span className="signal-pill">
-            <Sparkles size={13} />
-            {confidenceCopy(confidence)}
-          </span>
-          <span>{matchPercent}% read</span>
-        </div>
-      </div>
+        </motion.div>
 
-      <div className="content-column">
-        <div className="topline">
-          <div className="taste-step">
-            <BadgeCheck size={15} />
-            Taste card {step}
+        <div className="topbar">
+          <div className="scene-pill">
+            <span className="pulse" aria-hidden="true" />
+            Scene {step}
           </div>
           <button onClick={onStop} disabled={loading} className="stop-button" data-testid="stop-and-recommend">
-            {loading ? <Loader2 size={15} className="animate-spin" /> : <TimerReset size={15} />}
-            Reveal my pick
+            {loading ? <Loader2 size={15} className="animate-spin" /> : <RotateCcw size={15} />}
+            Reveal pick
           </button>
         </div>
 
-        <div className="title-block">
+        <div className="copy-stack">
           <h2 className="title-text">{title.title}</h2>
+
           <div className="meta-row">
             <span>{title.year}</span>
             <span className="meta-dot" />
@@ -469,64 +447,54 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
               </>
             ) : null}
           </div>
-        </div>
 
-        <div className="tags-container">
-          {title.genres.slice(0, 3).map((tag) => (
-            <span key={tag} className="tag">
-              {tag}
-            </span>
-          ))}
-          {title.tone.slice(0, 3).map((tag) => (
-            <span key={tag} className="tag tag-accent">
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        <p className="synopsis">{title.synopsis}</p>
-
-        <div className="details-grid">
-          <div className="detail-card">
-            <div className="detail-label">
-              <Users size={13} />
-              People
-            </div>
-            <div className="detail-value">{title.cast.slice(0, 4).join(", ")}</div>
+          <div className="tags-container">
+            {title.genres.slice(0, 3).map((tag) => (
+              <span key={tag} className="tag">
+                {tag}
+              </span>
+            ))}
+            {title.tone.slice(0, 2).map((tag) => (
+              <span key={tag} className="tag tag-accent">
+                {tag}
+              </span>
+            ))}
           </div>
-          <div className="detail-card">
-            <div className="detail-label">
-              <Palette size={13} />
-              Texture
+
+          <p className="synopsis">{title.synopsis}</p>
+
+          <details className="details">
+            <summary>
+              <Info size={14} />
+              Details
+            </summary>
+            <div className="details-panel">
+              <div>{title.cast.slice(0, 4).join(", ")}</div>
+              <div>{title.style.slice(0, 3).join(" / ")}</div>
             </div>
-            <div className="detail-value">{title.style.slice(0, 3).join(" / ")}</div>
-          </div>
+          </details>
         </div>
 
-        <div className="actions-panel">
-          <div className="actions-label">React honestly</div>
-          <div className="actions-container">
-            {actions.map((action) => (
-              <button
-                key={action.value}
+        <div className="action-dock">
+          {actions.map((action) => (
+            <div key={action.value} className="action-wrap">
+              <motion.button
                 type="button"
                 onClick={() => onFeedback(action.value)}
                 disabled={loading}
                 className={`action-button ${action.variant}`}
                 data-testid={`feedback-${action.value}`}
+                aria-label={action.label}
+                title={action.label}
+                whileTap={{ scale: 0.92 }}
               >
-                <div className="action-icon">
-                  {loading ? <Loader2 size={18} className="animate-spin" /> : <action.icon size={18} />}
-                </div>
-                <div className="action-copy">
-                  <div className="action-label">{action.label}</div>
-                  <div className="action-sublabel">{action.sublabel}</div>
-                </div>
-              </button>
-            ))}
-          </div>
+                {loading ? <Loader2 size={22} className="animate-spin" /> : <action.icon size={24} />}
+              </motion.button>
+              <div className="action-label">{action.label}</div>
+            </div>
+          ))}
         </div>
-      </div>
-    </motion.section>
+      </motion.article>
+    </section>
   );
 }

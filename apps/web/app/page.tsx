@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Activity, AlertCircle, Sparkles, Trophy } from "lucide-react";
+import { AlertCircle, Clapperboard } from "lucide-react";
 
 import { LandingShell } from "@/components/landing-shell";
 import { PrimingPanel } from "@/components/priming-panel";
@@ -12,27 +12,7 @@ import { startSession, stopSession, submitFeedback } from "@/lib/api-client";
 import { useSessionStore } from "@/lib/session-store";
 import type { AdventureLevel, ContentMode, FeedbackValue } from "@/lib/types";
 
-const phases = [
-  { id: "landing", label: "Start" },
-  { id: "priming", label: "Mood" },
-  { id: "rating", label: "Taste" },
-  { id: "result", label: "Pick" },
-] as const;
-
-type Phase = (typeof phases)[number]["id"];
-
-function confidenceMood(confidence?: number) {
-  if (!confidence) {
-    return "Ready to read your taste";
-  }
-  if (confidence < 0.32) {
-    return "Finding the first signal";
-  }
-  if (confidence < 0.62) {
-    return "Your taste is taking shape";
-  }
-  return "A sharp pick is coming together";
-}
+type Phase = "landing" | "priming" | "rating" | "result";
 
 export default function HomePage() {
   const [phase, setPhase] = useState<Phase>("landing");
@@ -52,25 +32,9 @@ export default function HomePage() {
     reset,
   } = useSessionStore();
 
-  const currentPhaseIndex = phases.findIndex((p) => p.id === phase);
-  const progress = ((currentPhaseIndex + 1) / phases.length) * 100;
-
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [phase, currentTitle?.title.id]);
-
-  const statusLine = useMemo(() => {
-    if (recommendation) {
-      return { icon: Trophy, text: "Your pick is ready" };
-    }
-    if (currentTitle) {
-      return {
-        icon: Activity,
-        text: `${confidenceMood(currentTitle.confidence)} - ${Math.round(currentTitle.confidence * 100)}%`,
-      };
-    }
-    return { icon: Sparkles, text: "English-only movie and series picks" };
-  }, [currentTitle, recommendation]);
 
   async function beginSession() {
     try {
@@ -151,111 +115,41 @@ export default function HomePage() {
         .app-header {
           position: sticky;
           top: 0;
-          z-index: 20;
-          display: grid;
-          grid-template-columns: 1fr auto;
+          z-index: 50;
+          display: flex;
           align-items: center;
-          gap: var(--space-4);
-          padding: var(--space-3) 0 var(--space-5);
-          background: linear-gradient(180deg, rgba(7, 8, 13, 0.96), rgba(7, 8, 13, 0));
+          justify-content: flex-start;
+          padding: var(--space-4) 0;
+          background: linear-gradient(180deg, rgba(7, 8, 13, 0.98) 0%, rgba(7, 8, 13, 0) 100%);
           backdrop-filter: blur(10px);
         }
 
         .logo {
           display: inline-flex;
           align-items: center;
-          gap: var(--space-3);
-          min-width: 0;
+          gap: var(--space-2);
           color: var(--text);
-          font-size: 15px;
+          font-size: 18px;
           font-weight: 900;
           letter-spacing: 0;
         }
 
         .logo-icon {
           display: grid;
-          width: 38px;
-          height: 38px;
-          flex: 0 0 auto;
+          width: 32px;
+          height: 32px;
           place-items: center;
-          border-radius: 13px;
-          background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+          border-radius: var(--radius-sm);
+          background: linear-gradient(135deg, var(--gold), var(--teal));
           color: #07080d;
-          box-shadow: 0 14px 30px rgba(143, 123, 255, 0.28);
-        }
-
-        .status-line {
-          display: inline-flex;
-          align-items: center;
-          justify-content: flex-end;
-          gap: var(--space-2);
-          color: var(--text-secondary);
-          font-size: 13px;
-          font-weight: 700;
-          white-space: nowrap;
-        }
-
-        .journey {
-          display: grid;
-          gap: var(--space-3);
-          margin: var(--space-1) 0 var(--space-6);
-        }
-
-        .journey-steps {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: var(--space-2);
-        }
-
-        .journey-step {
-          display: grid;
-          gap: var(--space-2);
-          color: var(--text-muted);
-          font-size: 11px;
-          font-weight: 900;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-        }
-
-        .journey-step::before {
-          content: "";
-          height: 3px;
-          border-radius: var(--radius-full);
-          background: rgba(255, 255, 255, 0.08);
-        }
-
-        .journey-step.active,
-        .journey-step.completed {
-          color: var(--text);
-        }
-
-        .journey-step.completed::before {
-          background: linear-gradient(90deg, var(--teal), var(--accent));
-        }
-
-        .journey-step.active::before {
-          background: linear-gradient(90deg, var(--accent), var(--gold));
-          box-shadow: 0 0 20px rgba(143, 123, 255, 0.32);
-        }
-
-        .journey-progress {
-          height: 1px;
-          overflow: hidden;
-          border-radius: var(--radius-full);
-          background: rgba(255, 255, 255, 0.08);
-        }
-
-        .journey-progress-fill {
-          height: 100%;
-          border-radius: inherit;
-          background: linear-gradient(90deg, var(--teal), var(--accent), var(--gold));
+          box-shadow: 0 8px 24px rgba(77, 212, 189, 0.22);
         }
 
         .error-banner {
           position: fixed;
           right: var(--space-5);
           bottom: var(--space-5);
-          z-index: 40;
+          z-index: 60;
           display: flex;
           max-width: min(460px, calc(100vw - 32px));
           align-items: flex-start;
@@ -268,81 +162,27 @@ export default function HomePage() {
           color: #ffd5dc;
           font-size: 14px;
           font-weight: 700;
-        }
-
-        @media (max-width: 720px) {
-          .app-header {
-            grid-template-columns: 1fr;
-            gap: var(--space-2);
-            padding-bottom: var(--space-4);
-          }
-
-          .status-line {
-            justify-content: flex-start;
-            font-size: 12px;
-          }
-
-          .logo {
-            font-size: 14px;
-          }
-
-          .journey-step {
-            font-size: 10px;
-          }
+          backdrop-filter: blur(12px);
         }
       `}</style>
 
       <header className="app-header">
-        <div className="logo" aria-label="English Content Recommender">
+        <div className="logo" aria-label="CineSwipe">
           <div className="logo-icon">
-            <Sparkles size={20} strokeWidth={2.4} />
+            <Clapperboard size={17} />
           </div>
-          English Content Recommender
-        </div>
-        <div className="status-line">
-          <statusLine.icon size={15} />
-          {statusLine.text}
+          CineSwipe
         </div>
       </header>
-
-      {phase !== "landing" && (
-        <motion.div
-          className="journey"
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.28 }}
-        >
-          <div className="journey-steps">
-            {phases.map((p, index) => (
-              <div
-                key={p.id}
-                className={`journey-step ${index === currentPhaseIndex ? "active" : ""} ${
-                  index < currentPhaseIndex ? "completed" : ""
-                }`}
-              >
-                {p.label}
-              </div>
-            ))}
-          </div>
-          <div className="journey-progress" aria-hidden="true">
-            <motion.div
-              className="journey-progress-fill"
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            />
-          </div>
-        </motion.div>
-      )}
 
       <AnimatePresence mode="wait">
         {phase === "landing" && (
           <motion.div
             key="landing"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.32 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.4 }}
           >
             <LandingShell onStart={() => setPhase("priming")} />
           </motion.div>
@@ -351,10 +191,10 @@ export default function HomePage() {
         {phase === "priming" && (
           <motion.div
             key="priming"
-            initial={{ opacity: 0, y: 14 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -14 }}
-            transition={{ duration: 0.32 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.4 }}
           >
             <PrimingPanel
               contentMode={contentMode}
@@ -369,10 +209,10 @@ export default function HomePage() {
         {phase === "rating" && currentTitle && (
           <motion.div
             key={currentTitle.title.id}
-            initial={{ opacity: 0, scale: 0.985, y: 14 }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.985, y: -14 }}
-            transition={{ duration: 0.34 }}
+            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+            transition={{ duration: 0.4 }}
           >
             <TitleCard payload={currentTitle} onFeedback={handleFeedback} onStop={handleStop} loading={loading} />
           </motion.div>
@@ -381,10 +221,10 @@ export default function HomePage() {
         {phase === "result" && recommendation && (
           <motion.div
             key="result"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.38 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
           >
             <RecommendationHero recommendation={recommendation} onRestart={handleRestart} />
           </motion.div>
@@ -406,3 +246,4 @@ export default function HomePage() {
     </main>
   );
 }
+

@@ -3,8 +3,8 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "English Content Recommender",
-  description: "Premium English-only movie and series recommendations powered by a session-aware recommender.",
+  title: "CineSwipe",
+  description: "Swipe through English movies and series to find the one worth watching tonight.",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "MovieRec",
+    title: "CineSwipe",
   },
 };
 

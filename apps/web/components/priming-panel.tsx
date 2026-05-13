@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, Film, Loader2, Scale, Shield, Shuffle, Sparkles, Tv } from "lucide-react";
+import { ArrowRight, Clapperboard, Film, Flame, Loader2, Moon, Shuffle, Sparkles, Tv } from "lucide-react";
 
 import type { AdventureLevel, ContentMode } from "@/lib/types";
 
@@ -13,34 +13,16 @@ type PrimingPanelProps = {
   loading: boolean;
 };
 
-const contentOptions: { value: ContentMode; label: string; icon: typeof Film; description: string }[] = [
-  { value: "movie", label: "Movie", icon: Film, description: "One complete story for tonight." },
-  { value: "series", label: "Series", icon: Tv, description: "A world you can stay inside." },
-  { value: "either", label: "Either", icon: Shuffle, description: "Let the best match win." },
+const contentOptions: { value: ContentMode; label: string; icon: typeof Film }[] = [
+  { value: "movie", label: "Movie", icon: Film },
+  { value: "series", label: "Series", icon: Tv },
+  { value: "either", label: "Surprise me", icon: Shuffle },
 ];
 
-const adventureOptions: { value: AdventureLevel; label: string; icon: typeof Shield; caption: string; hint: string }[] = [
-  {
-    value: "safe",
-    label: "Comfort fit",
-    icon: Shield,
-    caption: "Recognizable and easy to trust.",
-    hint: "Best when you want low-risk satisfaction.",
-  },
-  {
-    value: "balanced",
-    label: "Sweet spot",
-    icon: Scale,
-    caption: "A strong match with room for discovery.",
-    hint: "The default for most nights.",
-  },
-  {
-    value: "surprise",
-    label: "Deep cut",
-    icon: Sparkles,
-    caption: "Less obvious, more adventurous.",
-    hint: "Best when you want a fresher lane.",
-  },
+const adventureOptions: { value: AdventureLevel; label: string; icon: typeof Moon; accent: string }[] = [
+  { value: "safe", label: "Familiar", icon: Moon, accent: "calm" },
+  { value: "balanced", label: "Electric", icon: Flame, accent: "hot" },
+  { value: "surprise", label: "Wild card", icon: Sparkles, accent: "wild" },
 ];
 
 export function PrimingPanel({
@@ -61,121 +43,69 @@ export function PrimingPanel({
 
         .setup-hero {
           display: grid;
-          max-width: 780px;
-          gap: var(--space-3);
+          max-width: 760px;
+          gap: var(--space-4);
+        }
+
+        .setup-title {
+          color: var(--text);
+          font-size: 56px;
+          font-weight: 900;
+          letter-spacing: 0;
+          line-height: 0.98;
+          text-wrap: balance;
         }
 
         .setup-copy {
-          max-width: 640px;
+          max-width: 560px;
           color: var(--text-secondary);
-          font-size: 17px;
-          line-height: 1.7;
+          font-size: 18px;
+          font-weight: 650;
+          line-height: 1.55;
         }
 
         .setup-grid {
           display: grid;
           grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
-          gap: var(--space-5);
-          align-items: start;
+          gap: var(--space-4);
+          align-items: stretch;
         }
 
-        .panel {
+        .setup-panel {
           display: grid;
-          gap: var(--space-5);
-          padding: var(--space-6);
-          border-radius: var(--radius-2xl);
-        }
-
-        .panel-heading {
-          display: grid;
-          gap: var(--space-1);
+          gap: var(--space-4);
+          padding: var(--space-5);
+          border: 1px solid var(--line);
+          border-radius: var(--radius-sm);
+          background: rgba(255, 255, 255, 0.055);
+          backdrop-filter: blur(20px);
         }
 
         .panel-title {
           color: var(--text);
-          font-size: 18px;
+          font-size: 14px;
           font-weight: 900;
+          letter-spacing: 0;
+          text-transform: uppercase;
         }
 
-        .panel-subtitle {
-          color: var(--text-muted);
-          font-size: 13px;
-          font-weight: 700;
-        }
-
-        .content-options {
-          display: grid;
-          gap: var(--space-3);
-        }
-
-        .content-option {
-          display: grid;
-          grid-template-columns: auto 1fr;
-          gap: var(--space-4);
-          align-items: center;
-          padding: var(--space-4);
-          border: 1px solid var(--line);
-          border-radius: var(--radius-lg);
-          background: rgba(255, 255, 255, 0.045);
-          text-align: left;
-          transition:
-            transform var(--transition-fast),
-            border-color var(--transition-fast),
-            background var(--transition-fast);
-        }
-
-        .content-option:hover {
-          transform: translateY(-1px);
-          border-color: var(--line-strong);
-          background: rgba(255, 255, 255, 0.07);
-        }
-
-        .content-option.active {
-          border-color: rgba(77, 212, 189, 0.58);
-          background: var(--teal-soft);
-        }
-
-        .option-icon {
-          display: grid;
-          width: 44px;
-          height: 44px;
-          place-items: center;
-          border-radius: 15px;
-          background: rgba(255, 255, 255, 0.08);
-          color: var(--text-secondary);
-        }
-
-        .content-option.active .option-icon {
-          background: var(--teal);
-          color: #04120f;
-        }
-
-        .option-label {
-          color: var(--text);
-          font-size: 15px;
-          font-weight: 900;
-        }
-
-        .option-description {
-          color: var(--text-muted);
-          font-size: 13px;
-          line-height: 1.45;
-        }
-
-        .adventure-options {
+        .format-options {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: var(--space-3);
         }
 
-        .adventure-option {
+        .format-button,
+        .range-button {
+          position: relative;
+          overflow: hidden;
           display: grid;
-          min-height: 220px;
-          align-content: space-between;
-          gap: var(--space-5);
-          padding: var(--space-5);
+          align-content: end;
+          min-height: 150px;
+          gap: var(--space-4);
+          padding: var(--space-4);
           border: 1px solid var(--line);
-          border-radius: var(--radius-xl);
+          border-radius: var(--radius-sm);
           background: rgba(255, 255, 255, 0.045);
           text-align: left;
           transition:
@@ -185,56 +115,79 @@ export function PrimingPanel({
             box-shadow var(--transition-fast);
         }
 
-        .adventure-option:hover {
+        .format-button::before,
+        .range-button::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          opacity: 0;
+          background:
+            linear-gradient(135deg, rgba(246, 196, 107, 0.16), transparent 42%),
+            linear-gradient(315deg, rgba(77, 212, 189, 0.14), transparent 46%);
+          transition: opacity var(--transition-fast);
+        }
+
+        .format-button:hover,
+        .range-button:hover {
           transform: translateY(-2px);
           border-color: var(--line-strong);
-          background: rgba(255, 255, 255, 0.07);
         }
 
-        .adventure-option.active {
-          border-color: rgba(143, 123, 255, 0.72);
-          background:
-            linear-gradient(145deg, rgba(143, 123, 255, 0.22), rgba(246, 196, 107, 0.06)),
-            rgba(255, 255, 255, 0.055);
-          box-shadow: 0 18px 44px rgba(143, 123, 255, 0.16);
+        .format-button.active,
+        .range-button.active {
+          border-color: rgba(247, 243, 234, 0.58);
+          background: rgba(255, 255, 255, 0.1);
+          box-shadow: 0 22px 54px rgba(0, 0, 0, 0.34);
         }
 
-        .adventure-icon {
+        .format-button.active::before,
+        .range-button.active::before {
+          opacity: 1;
+        }
+
+        .option-icon,
+        .range-icon {
+          position: relative;
+          z-index: 1;
           display: grid;
-          width: 44px;
-          height: 44px;
+          width: 42px;
+          height: 42px;
           place-items: center;
-          border-radius: 15px;
-          background: rgba(255, 255, 255, 0.08);
-          color: var(--accent-strong);
+          border-radius: var(--radius-sm);
+          background: rgba(255, 255, 255, 0.1);
+          color: var(--text);
         }
 
-        .adventure-option.active .adventure-icon {
-          background: var(--accent);
-          color: #080911;
-        }
-
-        .adventure-copy {
-          display: grid;
-          gap: var(--space-2);
-        }
-
-        .adventure-label {
+        .option-label,
+        .range-label {
+          position: relative;
+          z-index: 1;
           color: var(--text);
           font-size: 17px;
           font-weight: 900;
+          line-height: 1.15;
         }
 
-        .adventure-caption {
-          color: var(--text-secondary);
-          font-size: 13px;
-          line-height: 1.5;
+        .range-options {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: var(--space-3);
         }
 
-        .adventure-hint {
-          color: var(--text-muted);
-          font-size: 12px;
-          line-height: 1.45;
+        .range-button {
+          min-height: 210px;
+        }
+
+        .range-button.calm .range-icon {
+          color: var(--teal);
+        }
+
+        .range-button.hot .range-icon {
+          color: var(--gold);
+        }
+
+        .range-button.wild .range-icon {
+          color: var(--rose);
         }
 
         .submit-section {
@@ -245,21 +198,22 @@ export function PrimingPanel({
           padding-top: var(--space-2);
         }
 
-        .submit-note {
-          max-width: 430px;
+        .deck-line {
+          display: inline-flex;
+          align-items: center;
+          gap: var(--space-2);
           color: var(--text-muted);
           font-size: 13px;
-          line-height: 1.5;
+          font-weight: 850;
         }
 
         @media (max-width: 980px) {
-          .setup-grid,
-          .adventure-options {
+          .setup-grid {
             grid-template-columns: 1fr;
           }
 
-          .adventure-option {
-            min-height: auto;
+          .setup-title {
+            font-size: 46px;
           }
         }
 
@@ -268,9 +222,25 @@ export function PrimingPanel({
             padding-top: var(--space-5);
           }
 
-          .panel {
-            padding: var(--space-4);
-            border-radius: var(--radius-xl);
+          .setup-title {
+            font-size: 34px;
+          }
+
+          .setup-copy {
+            font-size: 16px;
+          }
+
+          .format-options,
+          .range-options {
+            grid-template-columns: 1fr;
+          }
+
+          .format-button,
+          .range-button {
+            min-height: 92px;
+            grid-template-columns: auto 1fr;
+            align-content: center;
+            align-items: center;
           }
 
           .submit-section {
@@ -286,74 +256,57 @@ export function PrimingPanel({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.38 }}
       >
-        <div className="section-label">Set the vibe</div>
-        <h2 className="section-title">Tell it what kind of night this is.</h2>
-        <p className="setup-copy">
-          Two light choices are enough. The real learning happens when you react to titles.
-        </p>
+        <div className="section-label">Tonight</div>
+        <h2 className="setup-title">Set the scene.</h2>
+        <p className="setup-copy">Two taps, then the deck starts moving.</p>
       </motion.div>
 
       <div className="setup-grid">
         <motion.div
-          className="panel glass"
+          className="setup-panel"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.38, delay: 0.06 }}
         >
-          <div className="panel-heading">
-            <div className="panel-title">Format</div>
-            <div className="panel-subtitle">What do you want to commit to?</div>
-          </div>
-
-          <div className="content-options">
+          <div className="panel-title">Format</div>
+          <div className="format-options">
             {contentOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 onClick={() => onChange(option.value, adventureLevel)}
-                className={`content-option ${contentMode === option.value ? "active" : ""}`}
+                className={`format-button ${contentMode === option.value ? "active" : ""}`}
                 aria-pressed={contentMode === option.value}
               >
                 <div className="option-icon">
                   <option.icon size={20} strokeWidth={2.2} />
                 </div>
-                <div>
-                  <div className="option-label">{option.label}</div>
-                  <div className="option-description">{option.description}</div>
-                </div>
+                <div className="option-label">{option.label}</div>
               </button>
             ))}
           </div>
         </motion.div>
 
         <motion.div
-          className="panel glass"
+          className="setup-panel"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.38, delay: 0.12 }}
         >
-          <div className="panel-heading">
-            <div className="panel-title">Discovery range</div>
-            <div className="panel-subtitle">How far should the recommendation reach?</div>
-          </div>
-
-          <div className="adventure-options">
+          <div className="panel-title">Range</div>
+          <div className="range-options">
             {adventureOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 onClick={() => onChange(contentMode, option.value)}
-                className={`adventure-option ${adventureLevel === option.value ? "active" : ""}`}
+                className={`range-button ${option.accent} ${adventureLevel === option.value ? "active" : ""}`}
                 aria-pressed={adventureLevel === option.value}
               >
-                <div className="adventure-icon">
+                <div className="range-icon">
                   <option.icon size={20} strokeWidth={2.2} />
                 </div>
-                <div className="adventure-copy">
-                  <div className="adventure-label">{option.label}</div>
-                  <div className="adventure-caption">{option.caption}</div>
-                  <div className="adventure-hint">{option.hint}</div>
-                </div>
+                <div className="range-label">{option.label}</div>
               </button>
             ))}
           </div>
@@ -366,18 +319,19 @@ export function PrimingPanel({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.38, delay: 0.18 }}
       >
-        <p className="submit-note">
-          No account, no long questionnaire. You can stop as soon as the pick feels ready.
-        </p>
+        <div className="deck-line">
+          <Clapperboard size={16} />
+          React fast. Stop whenever it clicks.
+        </div>
         <button onClick={onSubmit} disabled={loading} className="btn btn-primary btn-lg" data-testid="start-tasting">
           {loading ? (
             <>
               <Loader2 size={18} className="animate-spin" />
-              Finding the first title
+              Opening deck
             </>
           ) : (
             <>
-              Start tasting
+              Open the deck
               <ArrowRight size={18} />
             </>
           )}

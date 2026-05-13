@@ -249,13 +249,13 @@ img {
   color: var(--gold);
   font-size: 12px;
   font-weight: 900;
-  letter-spacing: 0.14em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
 .section-title {
   color: var(--text);
-  font-size: clamp(30px, 4vw, 48px);
+  font-size: 44px;
   font-weight: 900;
   letter-spacing: 0;
   line-height: 1.03;

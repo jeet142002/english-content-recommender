@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { motion } from "framer-motion";
-import { CheckCircle2, Film, RotateCcw, Sparkles, Star, Tv } from "lucide-react";
+import { Check, Film, RotateCcw, Sparkles, Star, Tv } from "lucide-react";
 
+import { PosterImage } from "@/components/poster-image";
 import type { RecommendationResult } from "@/lib/types";
 
 type RecommendationHeroProps = {
@@ -12,8 +12,7 @@ type RecommendationHeroProps = {
 };
 
 export function RecommendationHero({ recommendation, onRestart }: RecommendationHeroProps) {
-  const { hero, backups, reasons, confidence, summary } = recommendation;
-  const confidencePercent = Math.round(confidence * 100);
+  const { hero, backups, reasons, summary } = recommendation;
   const runtimeLabel = hero.kind === "movie" ? `${hero.runtime} min` : `${hero.seasons ?? 0} seasons`;
 
   return (
@@ -27,29 +26,24 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
         .recommendation-section {
           display: grid;
           gap: var(--space-5);
-          padding-bottom: var(--space-8);
+          padding: var(--space-4) 0 var(--space-8);
         }
 
         .hero-card {
           position: relative;
           overflow: hidden;
           display: grid;
-          grid-template-columns: minmax(260px, 380px) minmax(0, 1fr);
-          gap: clamp(24px, 4vw, 54px);
-          min-height: 660px;
-          padding: clamp(18px, 3vw, 36px);
-          border: 1px solid var(--line);
-          border-radius: var(--radius-2xl);
-          background: var(--panel-strong);
-          box-shadow: var(--shadow);
+          min-height: 720px;
+          border: 1px solid rgba(255, 255, 255, 0.13);
+          border-radius: var(--radius-sm);
+          background: #0b0e16;
+          box-shadow: 0 32px 90px rgba(0, 0, 0, 0.54);
         }
 
         .hero-backdrop {
           position: absolute;
           inset: 0;
-          opacity: 0.28;
-          filter: blur(30px) saturate(1.25);
-          transform: scale(1.1);
+          opacity: 0.8;
         }
 
         .hero-backdrop::after {
@@ -57,31 +51,29 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
           position: absolute;
           inset: 0;
           background:
-            linear-gradient(90deg, rgba(7, 8, 13, 0.9), rgba(7, 8, 13, 0.52)),
-            linear-gradient(180deg, rgba(7, 8, 13, 0.2), rgba(7, 8, 13, 0.96));
+            linear-gradient(90deg, rgba(7, 8, 13, 0.96) 0%, rgba(7, 8, 13, 0.5) 48%, rgba(7, 8, 13, 0.78) 100%),
+            linear-gradient(180deg, rgba(7, 8, 13, 0.12) 0%, rgba(7, 8, 13, 0.96) 100%);
         }
 
-        .poster-side,
-        .hero-content {
+        .hero-layout {
           position: relative;
           z-index: 1;
-        }
-
-        .poster-side {
           display: grid;
-          align-content: center;
-          gap: var(--space-4);
+          grid-template-columns: minmax(250px, 360px) minmax(0, 1fr);
+          gap: clamp(28px, 5%, 64px);
+          align-items: end;
+          padding: var(--space-8);
         }
 
         .poster-shell {
           position: relative;
           overflow: hidden;
-          width: min(100%, 360px);
+          width: min(100%, 350px);
           aspect-ratio: 2 / 3;
           border: 1px solid rgba(255, 255, 255, 0.16);
-          border-radius: var(--radius-2xl);
+          border-radius: var(--radius-sm);
           background: #111420;
-          box-shadow: 0 30px 70px rgba(0, 0, 0, 0.48);
+          box-shadow: 0 28px 78px rgba(0, 0, 0, 0.58);
         }
 
         .match-badge {
@@ -94,26 +86,19 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
           gap: var(--space-2);
           padding: var(--space-2) var(--space-3);
           border-radius: var(--radius-full);
-          background: linear-gradient(135deg, var(--gold), var(--accent-strong));
-          color: #090a10;
+          background: #f7f3ea;
+          color: #07080d;
           font-size: 13px;
           font-weight: 900;
-          box-shadow: 0 18px 34px rgba(246, 196, 107, 0.22);
-        }
-
-        .poster-note {
-          width: min(100%, 360px);
-          color: var(--text-secondary);
-          font-size: 13px;
-          font-weight: 700;
-          line-height: 1.55;
+          box-shadow: 0 18px 40px rgba(247, 243, 234, 0.18);
         }
 
         .hero-content {
           display: grid;
-          align-content: center;
-          gap: var(--space-5);
+          align-content: end;
+          gap: var(--space-4);
           min-width: 0;
+          padding-bottom: var(--space-2);
         }
 
         .hero-label {
@@ -121,22 +106,21 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
           width: fit-content;
           align-items: center;
           gap: var(--space-2);
-          padding: var(--space-2) var(--space-3);
-          border: 1px solid rgba(246, 196, 107, 0.26);
-          border-radius: var(--radius-full);
-          background: var(--gold-soft);
-          color: #ffe2a8;
-          font-size: 13px;
+          color: var(--gold);
+          font-size: 12px;
           font-weight: 900;
+          letter-spacing: 0;
+          text-transform: uppercase;
         }
 
         .hero-title {
           max-width: 820px;
           color: var(--text);
-          font-size: clamp(44px, 7.5vw, 92px);
+          font-size: 78px;
           font-weight: 900;
           letter-spacing: 0;
           line-height: 0.94;
+          text-wrap: balance;
         }
 
         .hero-meta {
@@ -146,53 +130,55 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
           gap: var(--space-2);
           color: var(--text-secondary);
           font-size: 14px;
-          font-weight: 800;
+          font-weight: 850;
         }
 
         .hero-synopsis {
-          max-width: 720px;
+          display: -webkit-box;
+          max-width: 700px;
+          overflow: hidden;
           color: var(--text-soft);
-          font-size: clamp(15px, 1.6vw, 18px);
-          line-height: 1.8;
+          font-size: 17px;
+          font-weight: 600;
+          line-height: 1.65;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 3;
         }
 
         .summary-text {
-          max-width: 760px;
-          padding: var(--space-4) var(--space-5);
-          border: 1px solid rgba(77, 212, 189, 0.22);
-          border-radius: var(--radius-lg);
-          background: var(--teal-soft);
+          max-width: 720px;
           color: #d8fff7;
-          font-size: 14px;
-          font-weight: 700;
-          line-height: 1.65;
+          font-size: 15px;
+          font-weight: 800;
+          line-height: 1.55;
         }
 
         .reasons-grid {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: var(--space-3);
+          padding-top: var(--space-2);
         }
 
         .reason-card {
           display: grid;
-          align-content: start;
           gap: var(--space-3);
-          min-height: 170px;
+          min-height: 136px;
           padding: var(--space-4);
-          border: 1px solid var(--line);
-          border-radius: var(--radius-lg);
-          background: rgba(255, 255, 255, 0.055);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: var(--radius-sm);
+          background: rgba(7, 8, 13, 0.58);
+          backdrop-filter: blur(18px);
         }
 
         .reason-icon {
           display: grid;
-          width: 36px;
-          height: 36px;
+          width: 30px;
+          height: 30px;
           place-items: center;
-          border-radius: 13px;
-          background: var(--accent-soft);
-          color: var(--accent-strong);
+          border-radius: 50%;
+          background: rgba(77, 212, 189, 0.16);
+          color: var(--teal);
         }
 
         .reason-label {
@@ -204,23 +190,23 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
         .reason-detail {
           color: var(--text-secondary);
           font-size: 12px;
-          font-weight: 650;
-          line-height: 1.55;
+          font-weight: 700;
+          line-height: 1.5;
         }
 
         .cta-row {
           display: flex;
           flex-wrap: wrap;
           gap: var(--space-3);
-          padding-top: var(--space-1);
+          padding-top: var(--space-2);
         }
 
         .backups-section {
           display: grid;
           gap: var(--space-4);
           padding: var(--space-5);
-          border: 1px solid var(--line);
-          border-radius: var(--radius-2xl);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: var(--radius-sm);
           background: rgba(255, 255, 255, 0.045);
         }
 
@@ -229,11 +215,6 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
           align-items: end;
           justify-content: space-between;
           gap: var(--space-4);
-        }
-
-        .backups-title {
-          display: grid;
-          gap: var(--space-1);
         }
 
         .backups-heading {
@@ -245,33 +226,33 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
         .backups-copy {
           color: var(--text-muted);
           font-size: 13px;
-          font-weight: 700;
+          font-weight: 800;
         }
 
         .backups-grid {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: var(--space-4);
+          gap: var(--space-3);
         }
 
         .backup-card {
           overflow: hidden;
           display: grid;
-          grid-template-columns: 82px 1fr;
+          grid-template-columns: 76px 1fr;
           gap: var(--space-3);
           align-items: center;
           padding: var(--space-3);
-          border: 1px solid var(--line);
-          border-radius: var(--radius-lg);
-          background: rgba(255, 255, 255, 0.055);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: var(--radius-sm);
+          background: rgba(255, 255, 255, 0.05);
         }
 
         .backup-poster {
           position: relative;
           overflow: hidden;
-          width: 82px;
+          width: 76px;
           aspect-ratio: 2 / 3;
-          border-radius: var(--radius-md);
+          border-radius: var(--radius-sm);
           background: #111420;
         }
 
@@ -289,23 +270,22 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
           margin-top: var(--space-2);
           color: var(--text-muted);
           font-size: 12px;
-          font-weight: 700;
+          font-weight: 750;
           line-height: 1.5;
         }
 
         @media (max-width: 1060px) {
-          .hero-card {
+          .hero-layout {
             grid-template-columns: 1fr;
-            min-height: auto;
+            align-items: start;
           }
 
-          .poster-side {
-            justify-items: center;
-            align-content: start;
+          .poster-shell {
+            width: min(70vw, 310px);
           }
 
-          .hero-content {
-            align-content: start;
+          .hero-title {
+            font-size: 58px;
           }
 
           .reasons-grid,
@@ -315,18 +295,26 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
         }
 
         @media (max-width: 680px) {
-          .hero-card,
-          .backups-section {
-            border-radius: var(--radius-xl);
+          .hero-card {
+            min-height: auto;
           }
 
-          .poster-shell,
-          .poster-note {
-            width: min(82vw, 300px);
+          .hero-layout {
+            gap: var(--space-5);
+            padding: var(--space-4);
+          }
+
+          .poster-shell {
+            width: min(72vw, 260px);
           }
 
           .hero-title {
-            font-size: clamp(42px, 14vw, 64px);
+            font-size: 40px;
+            line-height: 1;
+          }
+
+          .hero-synopsis {
+            font-size: 15px;
           }
 
           .reason-card {
@@ -339,11 +327,11 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
           }
 
           .backup-card {
-            grid-template-columns: 68px 1fr;
+            grid-template-columns: 64px 1fr;
           }
 
           .backup-poster {
-            width: 68px;
+            width: 64px;
           }
         }
       `}</style>
@@ -355,75 +343,75 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
         transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="hero-backdrop" aria-hidden="true">
-          <Image src={hero.posterUrl} alt="" fill sizes="100vw" style={{ objectFit: "cover" }} priority />
+          <PosterImage src={hero.posterUrl} alt="" label={hero.title} sizes="100vw" priority showLabel={false} />
         </div>
 
-        <div className="poster-side">
-          <div className="poster-shell">
-            <Image
+        <div className="hero-layout">
+          <motion.div
+            className="poster-shell"
+            initial={{ opacity: 0, y: 18, rotate: -1.5 }}
+            animate={{ opacity: 1, y: 0, rotate: 0 }}
+            transition={{ duration: 0.46, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <PosterImage
               src={hero.posterUrl}
-              alt={`${hero.title} poster`}
-              fill
-              sizes="(max-width: 1060px) 82vw, 360px"
-              style={{ objectFit: "cover", objectPosition: "center top" }}
+              alt=""
+              label={hero.title}
+              sizes="(max-width: 680px) 72vw, (max-width: 1060px) 70vw, 350px"
               priority
             />
             <div className="match-badge">
               <Star size={14} fill="currentColor" />
-              {confidencePercent}% match
+              Top match
             </div>
-          </div>
-          <p className="poster-note">
-            This is the strongest fit from your session, with nearby alternatives saved below.
-          </p>
-        </div>
+          </motion.div>
 
-        <div className="hero-content">
-          <div className="hero-label">
-            <Sparkles size={15} />
-            Your best watch tonight
-          </div>
+          <div className="hero-content">
+            <div className="hero-label">
+              <Sparkles size={15} />
+              Press play tonight
+            </div>
 
-          <h2 className="hero-title">{hero.title}</h2>
+            <h2 className="hero-title">{hero.title}</h2>
 
-          <div className="hero-meta">
-            <span>{hero.year}</span>
-            <span className="meta-dot" />
-            <span>{runtimeLabel}</span>
-            <span className="meta-dot" />
-            <span>{hero.kind === "movie" ? <Film size={14} /> : <Tv size={14} />}</span>
-            <span>{hero.genres.slice(0, 3).join(" / ")}</span>
-          </div>
+            <div className="hero-meta">
+              <span>{hero.year}</span>
+              <span className="meta-dot" />
+              <span>{runtimeLabel}</span>
+              <span className="meta-dot" />
+              <span>{hero.kind === "movie" ? <Film size={14} /> : <Tv size={14} />}</span>
+              <span>{hero.genres.slice(0, 3).join(" / ")}</span>
+            </div>
 
-          <p className="hero-synopsis">{hero.synopsis}</p>
+            <p className="hero-synopsis">{hero.synopsis}</p>
+            <div className="summary-text">{summary}</div>
 
-          <div className="summary-text">{summary}</div>
+            <div className="reasons-grid">
+              {reasons.slice(0, 3).map((reason, index) => (
+                <motion.div
+                  key={reason.label}
+                  className="reason-card"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.34, delay: 0.12 + index * 0.06 }}
+                >
+                  <div className="reason-icon">
+                    <Check size={16} />
+                  </div>
+                  <div>
+                    <div className="reason-label">{reason.label}</div>
+                    <div className="reason-detail">{reason.detail}</div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
 
-          <div className="reasons-grid">
-            {reasons.slice(0, 3).map((reason, index) => (
-              <motion.div
-                key={reason.label}
-                className="reason-card"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.34, delay: 0.12 + index * 0.06 }}
-              >
-                <div className="reason-icon">
-                  <CheckCircle2 size={18} />
-                </div>
-                <div>
-                  <div className="reason-label">{reason.label}</div>
-                  <div className="reason-detail">{reason.detail}</div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="cta-row">
-            <button onClick={onRestart} className="btn btn-primary btn-lg" data-testid="start-over">
-              <RotateCcw size={18} />
-              Start a new read
-            </button>
+            <div className="cta-row">
+              <button onClick={onRestart} className="btn btn-primary btn-lg" data-testid="start-over">
+                <RotateCcw size={18} />
+                Start over
+              </button>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -435,11 +423,11 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
         transition={{ duration: 0.38, delay: 0.12 }}
       >
         <div className="backups-header">
-          <div className="backups-title">
-            <div className="section-label">Backup picks</div>
-            <h3 className="backups-heading">Still in the same taste lane</h3>
+          <div>
+            <div className="section-label">Shortlist</div>
+            <h3 className="backups-heading">Also worth queueing</h3>
           </div>
-          <p className="backups-copy">Use these when the hero pick is unavailable or you want another angle.</p>
+          <p className="backups-copy">Nearby picks with the same pull.</p>
         </div>
 
         <div className="backups-grid">
@@ -452,12 +440,12 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
               transition={{ duration: 0.3, delay: 0.18 + index * 0.06 }}
             >
               <div className="backup-poster">
-                <Image
+                <PosterImage
                   src={title.posterUrl}
-                  alt={`${title.title} poster`}
-                  fill
-                  sizes="82px"
-                  style={{ objectFit: "cover", objectPosition: "center top" }}
+                  alt=""
+                  label={title.title}
+                  sizes="76px"
+                  showLabel={false}
                 />
               </div>
               <div>

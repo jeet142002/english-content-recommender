@@ -1,11 +1,11 @@
 {
-  "name": "English Content Recommender",
-  "short_name": "MovieRec",
-  "description": "Personalized English movie and series recommendations",
+  "name": "CineSwipe",
+  "short_name": "CineSwipe",
+  "description": "Swipe through English movies and series to find the one worth watching tonight.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
-  "theme_color": "#8b7cff",
+  "theme_color": "#0b0e16",
   "orientation": "portrait",
   "icons": [
     {
