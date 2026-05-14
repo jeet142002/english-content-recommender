@@ -61,6 +61,7 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
 
         .deck-card {
           position: relative;
+          isolation: isolate;
           overflow: hidden;
           display: grid;
           width: min(100%, 980px);
@@ -73,6 +74,18 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           user-select: none;
         }
 
+        .deck-card::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          z-index: 2;
+          pointer-events: none;
+          background:
+            radial-gradient(ellipse 78% 56% at 34% 68%, rgba(7, 8, 13, 0.86) 0%, rgba(7, 8, 13, 0.62) 34%, rgba(7, 8, 13, 0.18) 62%, transparent 100%),
+            linear-gradient(180deg, rgba(7, 8, 13, 0.78) 0%, rgba(7, 8, 13, 0.16) 22%, rgba(7, 8, 13, 0.1) 48%, rgba(7, 8, 13, 0.86) 100%),
+            linear-gradient(90deg, rgba(7, 8, 13, 0.7) 0%, rgba(7, 8, 13, 0.24) 42%, rgba(7, 8, 13, 0.48) 100%);
+        }
+
         .backdrop,
         .backdrop img {
           position: absolute;
@@ -80,7 +93,10 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
         }
 
         .backdrop {
-          opacity: 0.72;
+          z-index: 0;
+          opacity: 0.44;
+          filter: blur(24px) saturate(120%);
+          transform: scale(1.08);
         }
 
         .backdrop::after {
@@ -88,18 +104,19 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           position: absolute;
           inset: 0;
           background:
-            linear-gradient(90deg, rgba(7, 8, 13, 0.9) 0%, rgba(7, 8, 13, 0.28) 45%, rgba(7, 8, 13, 0.8) 100%),
-            linear-gradient(180deg, rgba(7, 8, 13, 0.1) 0%, rgba(7, 8, 13, 0.24) 36%, rgba(7, 8, 13, 0.95) 100%);
+            linear-gradient(90deg, rgba(7, 8, 13, 0.82) 0%, rgba(7, 8, 13, 0.46) 45%, rgba(7, 8, 13, 0.72) 100%),
+            linear-gradient(180deg, rgba(7, 8, 13, 0.4) 0%, rgba(7, 8, 13, 0.28) 34%, rgba(7, 8, 13, 0.82) 100%);
         }
 
         .poster-focus {
           position: absolute;
           top: 50%;
-          left: 50%;
+          right: clamp(24px, 5vw, 56px);
           overflow: hidden;
-          width: min(42vw, 360px);
+          width: clamp(220px, 30vw, 330px);
           aspect-ratio: 2 / 3;
-          transform: translate(-50%, -54%);
+          z-index: 3;
+          transform: translateY(-52%);
           border: 1px solid rgba(255, 255, 255, 0.16);
           border-radius: var(--radius-sm);
           background: #10131d;
@@ -108,7 +125,7 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
 
         .topbar {
           position: relative;
-          z-index: 2;
+          z-index: 3;
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -167,12 +184,25 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
 
         .copy-stack {
           position: relative;
-          z-index: 2;
+          z-index: 3;
           align-self: end;
           display: grid;
-          max-width: 680px;
+          max-width: min(620px, calc(100% - clamp(260px, 38vw, 410px)));
           gap: var(--space-3);
           padding: var(--space-5) var(--space-5) 116px;
+        }
+
+        .copy-stack::before {
+          content: "";
+          position: absolute;
+          inset: -20px -28px 82px -28px;
+          z-index: -1;
+          border-radius: var(--radius-lg);
+          background:
+            radial-gradient(ellipse at 28% 45%, rgba(7, 8, 13, 0.78) 0%, rgba(7, 8, 13, 0.58) 42%, rgba(7, 8, 13, 0.08) 74%, transparent 100%),
+            linear-gradient(90deg, rgba(7, 8, 13, 0.66) 0%, rgba(7, 8, 13, 0.42) 58%, transparent 100%);
+          filter: blur(0.2px);
+          pointer-events: none;
         }
 
         .title-text {
@@ -181,6 +211,9 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           font-weight: 900;
           letter-spacing: 0;
           line-height: 0.96;
+          text-shadow:
+            0 2px 22px rgba(0, 0, 0, 0.78),
+            0 1px 2px rgba(0, 0, 0, 0.72);
           text-wrap: balance;
         }
 
@@ -192,6 +225,7 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           color: var(--text-secondary);
           font-size: 14px;
           font-weight: 850;
+          text-shadow: 0 1px 12px rgba(0, 0, 0, 0.72);
         }
 
         .tags-container {
@@ -209,6 +243,7 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           font-size: 16px;
           font-weight: 600;
           line-height: 1.55;
+          text-shadow: 0 1px 14px rgba(0, 0, 0, 0.78);
           -webkit-box-orient: vertical;
           -webkit-line-clamp: 2;
         }
@@ -218,6 +253,7 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           color: var(--text-secondary);
           font-size: 13px;
           font-weight: 800;
+          text-shadow: 0 1px 12px rgba(0, 0, 0, 0.7);
         }
 
         .details summary {
@@ -247,13 +283,26 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
 
         .action-dock {
           position: absolute;
-          right: var(--space-5);
+          right: auto;
           bottom: var(--space-5);
-          left: var(--space-5);
-          z-index: 4;
+          left: 50%;
+          z-index: 5;
           display: flex;
+          width: fit-content;
+          max-width: calc(100% - (var(--space-5) * 2));
           justify-content: center;
           gap: var(--space-4);
+          padding: var(--space-3) var(--space-4) var(--space-2);
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          border-radius: var(--radius-full);
+          background:
+            radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.12), transparent 64%),
+            rgba(7, 8, 13, 0.78);
+          box-shadow:
+            0 18px 48px rgba(0, 0, 0, 0.46),
+            0 0 0 1px rgba(0, 0, 0, 0.22);
+          transform: translateX(-50%);
+          backdrop-filter: blur(22px) saturate(145%);
         }
 
         .action-wrap {
@@ -267,11 +316,13 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           width: 68px;
           height: 68px;
           place-items: center;
-          border: 1px solid rgba(255, 255, 255, 0.16);
+          border: 1px solid rgba(255, 255, 255, 0.22);
           border-radius: 50%;
-          background: rgba(7, 8, 13, 0.72);
+          background: rgba(12, 14, 22, 0.88);
           color: var(--text);
-          box-shadow: 0 18px 36px rgba(0, 0, 0, 0.36);
+          box-shadow:
+            0 18px 36px rgba(0, 0, 0, 0.38),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
           backdrop-filter: blur(18px);
           transition:
             transform var(--transition-fast),
@@ -303,9 +354,12 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
         }
 
         .action-label {
-          color: var(--text-muted);
+          color: var(--text);
           font-size: 12px;
           font-weight: 900;
+          text-shadow:
+            0 1px 10px rgba(0, 0, 0, 0.9),
+            0 1px 2px rgba(0, 0, 0, 0.9);
         }
 
         @keyframes pulse {
@@ -322,9 +376,21 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
             min-height: 720px;
           }
 
+          .deck-card::before {
+            background:
+              radial-gradient(ellipse 86% 58% at 34% 70%, rgba(7, 8, 13, 0.88) 0%, rgba(7, 8, 13, 0.64) 38%, rgba(7, 8, 13, 0.18) 68%, transparent 100%),
+              linear-gradient(180deg, rgba(7, 8, 13, 0.78) 0%, rgba(7, 8, 13, 0.12) 30%, rgba(7, 8, 13, 0.88) 100%);
+          }
+
           .poster-focus {
             top: 42%;
-            width: min(58vw, 340px);
+            right: 50%;
+            width: min(58vw, 320px);
+            transform: translate(50%, -56%);
+          }
+
+          .copy-stack {
+            max-width: 100%;
           }
 
           .title-text {
@@ -359,11 +425,19 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           .poster-focus {
             top: 38%;
             width: min(68vw, 280px);
+            transform: translate(50%, -56%);
           }
 
           .copy-stack {
             gap: var(--space-2);
             padding: var(--space-4) var(--space-4) 104px;
+          }
+
+          .copy-stack::before {
+            inset: -18px -18px 74px -18px;
+            background:
+              radial-gradient(ellipse at 34% 48%, rgba(7, 8, 13, 0.8) 0%, rgba(7, 8, 13, 0.62) 48%, rgba(7, 8, 13, 0.1) 78%, transparent 100%),
+              linear-gradient(180deg, transparent 0%, rgba(7, 8, 13, 0.52) 34%, rgba(7, 8, 13, 0.68) 100%);
           }
 
           .title-text {
@@ -378,6 +452,7 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           .action-dock {
             gap: var(--space-3);
             bottom: var(--space-4);
+            padding: var(--space-2) var(--space-3);
           }
 
           .action-button {
@@ -400,7 +475,15 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
         transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="backdrop" aria-hidden="true">
-          <PosterImage src={title.posterUrl} alt="" label={title.title} sizes="100vw" priority showLabel={false} />
+          <PosterImage
+            src={title.posterUrl}
+            alt=""
+            label={title.title}
+            sizes="100vw"
+            priority
+            objectPosition="center center"
+            showLabel={false}
+          />
         </div>
 
         <motion.div
@@ -416,6 +499,8 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
             label={title.title}
             sizes="(max-width: 640px) 68vw, (max-width: 980px) 58vw, 360px"
             priority
+            objectFit="contain"
+            objectPosition="center center"
             showLabel={false}
           />
         </motion.div>

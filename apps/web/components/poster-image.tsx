@@ -9,6 +9,7 @@ type PosterImageProps = {
   label: string;
   priority?: boolean;
   sizes: string;
+  objectFit?: "cover" | "contain";
   objectPosition?: string;
   showLabel?: boolean;
 };
@@ -19,6 +20,7 @@ export function PosterImage({
   label,
   priority = false,
   sizes,
+  objectFit = "cover",
   objectPosition = "center top",
   showLabel = true,
 }: PosterImageProps) {
@@ -70,7 +72,7 @@ export function PosterImage({
           sizes={sizes}
           unoptimized
           onError={() => setFailed(true)}
-          style={{ objectFit: "cover", objectPosition }}
+          style={{ objectFit, objectPosition }}
           priority={priority}
         />
       )}

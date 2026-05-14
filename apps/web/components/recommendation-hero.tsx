@@ -22,7 +22,7 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
       animate={{ opacity: 1 }}
       transition={{ duration: 0.42 }}
     >
-      <style jsx>{`
+      <style jsx global>{`
         .recommendation-section {
           display: grid;
           gap: var(--space-5);
