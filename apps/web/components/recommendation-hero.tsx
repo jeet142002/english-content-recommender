@@ -333,6 +333,42 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
           .backup-poster {
             width: 64px;
           }
+
+          .hero-title-link {
+            text-decoration: none;
+            color: inherit;
+            display: inline-block;
+          }
+
+          .hero-title-link:hover .hero-title {
+            opacity: 0.92;
+          }
+
+          .hero-title-link:visited,
+          .hero-title-link:active,
+          .hero-title-link:focus {
+            color: inherit;
+            text-decoration: none;
+          }
+          .backup-title-link {
+              text-decoration: none;
+              color: inherit;
+              display: inline-block;
+            }
+
+            .backup-title-link:hover .backup-title {
+              opacity: 0.92;
+            }
+
+            .backup-title-link:visited,
+            .backup-title-link:active,
+            .backup-title-link:focus {
+              color: inherit;
+              text-decoration: none;
+            }
+            .backup-title {
+              transition: opacity 0.2s ease;
+            }
         }
       `}</style>
 
@@ -372,7 +408,17 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
               Press play tonight
             </div>
 
-            <h2 className="hero-title">{hero.title}</h2>
+            {/* <h2 className="hero-title">{hero.title}</h2> */}
+
+                <a
+                  href={`https://www.google.com/search?q=${encodeURIComponent(hero.title)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hero-title-link"
+                  title={`Search "${hero.title}" on Google`}
+                >
+                  <h2 className="hero-title">{hero.title}</h2>
+                </a>
 
             <div className="hero-meta">
               <span>{hero.year}</span>
@@ -381,6 +427,12 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
               <span className="meta-dot" />
               <span>{hero.kind === "movie" ? <Film size={14} /> : <Tv size={14} />}</span>
               <span>{hero.genres.slice(0, 3).join(" / ")}</span>
+              {hero.tmdbRating ? (
+              <>
+                <span className="meta-dot" />
+                <span>{hero.tmdbRating.toFixed(1)} TMDB</span>
+              </>
+            ) : null}
             </div>
 
             <p className="hero-synopsis">{hero.synopsis}</p>
@@ -449,10 +501,24 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
                 />
               </div>
               <div>
-                <div className="backup-title">
+                {/* <div className="backup-title">
                   {title.kind === "movie" ? <Film size={14} /> : <Tv size={14} />}
                   {title.title}
-                </div>
+                </div> */}
+
+                  <a
+                    href={`https://www.google.com/search?q=${encodeURIComponent(title.title)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="backup-title-link"
+                    title={`Search "${title.title}" on Google`}
+                  >
+                    <div className="backup-title">
+                      {title.kind === "movie" ? <Film size={14} /> : <Tv size={14} />}
+                      {title.title}
+                    </div>
+                  </a>
+
                 <div className="backup-meta">
                   {title.year} - {title.genres.slice(0, 3).join(" / ")}
                 </div>

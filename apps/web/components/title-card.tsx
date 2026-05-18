@@ -235,8 +235,22 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           padding-top: var(--space-1);
         }
 
+        // .synopsis {
+        //   display: -webkit-box;
+        //   max-width: 620px;
+        //   overflow: hidden;
+        //   color: var(--text-soft);
+        //   font-size: 16px;
+        //   font-weight: 600;
+        //   line-height: 1.55;
+        //   text-shadow: 0 1px 14px rgba(0, 0, 0, 0.78);
+        //   -webkit-box-orient: vertical;
+        //   -webkit-line-clamp: 2;
+        // }
+
         .synopsis {
           display: -webkit-box;
+          position: relative;
           max-width: 620px;
           overflow: hidden;
           color: var(--text-soft);
@@ -248,6 +262,24 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           -webkit-line-clamp: 2;
         }
 
+        .synopsis::after {
+          content: "";
+          position: absolute;
+          right: 0;
+          bottom: 0;
+
+          width: 35%;
+          height: 1.6em;
+
+          background: linear-gradient(
+            to right,
+            rgba(7, 8, 13, 0),
+            rgba(7, 8, 13, 0.92)
+          );
+
+          pointer-events: none;
+        }
+
         .details {
           width: fit-content;
           color: var(--text-secondary);
@@ -256,29 +288,78 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           text-shadow: 0 1px 12px rgba(0, 0, 0, 0.7);
         }
 
+        //.details summary {
+        //   display: inline-flex;
+        //   align-items: center;
+        //   gap: var(--space-2);
+        //   cursor: pointer;
+        //   list-style: none;
+        // }
+
         .details summary {
           display: inline-flex;
           align-items: center;
           gap: var(--space-2);
           cursor: pointer;
           list-style: none;
+          transition:
+            opacity 0.22s ease,
+            transform 0.22s ease;
+        }
+
+        .details summary:hover {
+          opacity: 0.9;
+          transform: translateY(-1px);
         }
 
         .details summary::-webkit-details-marker {
           display: none;
         }
 
+        // .details-panel {
+        //   display: grid;
+        //   max-width: 620px;
+        //   gap: var(--space-2);
+        //   margin-top: var(--space-3);
+        //   padding: var(--space-3);
+        //   border: 1px solid rgba(255, 255, 255, 0.12);
+        //   border-radius: var(--radius-sm);
+        //   background: rgba(7, 8, 13, 0.64);
+        //   color: var(--text-soft);
+        //   backdrop-filter: blur(16px);
+        // }
+
         .details-panel {
           display: grid;
           max-width: 620px;
-          gap: var(--space-2);
+          gap: var(--space-4);
           margin-top: var(--space-3);
-          padding: var(--space-3);
+          padding: var(--space-4);
           border: 1px solid rgba(255, 255, 255, 0.12);
           border-radius: var(--radius-sm);
           background: rgba(7, 8, 13, 0.64);
           color: var(--text-soft);
           backdrop-filter: blur(16px);
+          animation: detailsReveal 0.28s ease;
+        }
+
+        .details-section {
+          display: grid;
+          gap: 6px;
+        }
+
+        .details-heading {
+          color: var(--text-secondary);
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        .details-copy {
+          color: var(--text-soft);
+          line-height: 1.65;
+          font-size: 14px;
         }
 
         .action-dock {
@@ -360,6 +441,18 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           text-shadow:
             0 1px 10px rgba(0, 0, 0, 0.9),
             0 1px 2px rgba(0, 0, 0, 0.9);
+        }
+
+        @keyframes detailsReveal {
+          from {
+            opacity: 0;
+            transform: translateY(8px);
+          }
+
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         @keyframes pulse {
@@ -548,7 +641,7 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
 
           <p className="synopsis">{title.synopsis}</p>
 
-          <details className="details">
+          {/* <details className="details">
             <summary>
               <Info size={14} />
               Details
@@ -557,7 +650,52 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
               <div>{title.cast.slice(0, 4).join(", ")}</div>
               <div>{title.style.slice(0, 3).join(" / ")}</div>
             </div>
-          </details>
+          </details> */}
+
+            <details
+              className="details"
+              onToggle={(e) => {
+                const summary = e.currentTarget.querySelector("summary span");
+
+                if (summary) {
+                  summary.textContent = e.currentTarget.open
+                    ? "Hide details"
+                    : "Details";
+                }
+              }}
+            >
+              <summary>
+                <Info size={14} />
+                <span>Details</span>
+              </summary>
+
+              <div className="details-panel">
+                <div className="details-section">
+                  <div className="details-heading">Synopsis</div>
+
+                  <div className="details-copy">
+                    {title.synopsis}
+                  </div>
+                </div>
+
+                <div className="details-section">
+                  <div className="details-heading">Cast</div>
+
+                  <div className="details-copy">
+                    {title.cast.slice(0, 4).join(", ")}
+                  </div>
+                </div>
+
+                <div className="details-section">
+                  <div className="details-heading">Style</div>
+
+                  <div className="details-copy">
+                    {title.style.slice(0, 3).join(" / ")}
+                  </div>
+                </div>
+              </div>
+            </details>
+
         </div>
 
         <div className="action-dock">
