@@ -156,6 +156,36 @@ def spoken_language_names(detail: dict[str, Any]) -> list[str]:
             languages.append(name)
     return sorted(set(languages))
 
+def extract_trailer_key(videos: dict[str, Any]) -> str | None:
+    results = videos.get("results", [])
+
+    official_trailer = next(
+        (
+            item for item in results
+            if item.get("site") == "YouTube"
+            and item.get("type") == "Trailer"
+            and item.get("official")
+        ),
+        None,
+    )
+
+    if official_trailer:
+        return official_trailer.get("key")
+
+    fallback_trailer = next(
+        (
+            item for item in results
+            if item.get("site") == "YouTube"
+            and item.get("type") in {"Trailer", "Teaser"}
+        ),
+        None,
+    )
+
+    if fallback_trailer:
+        return fallback_trailer.get("key")
+
+    return None
+
 
 def derive_tags(genres: list[str], keywords: list[str], overview: str) -> tuple[list[str], list[str]]:
     haystack = " ".join([*genres, *keywords, overview]).lower()
@@ -204,10 +234,12 @@ def normalize_movie(summary: dict[str, Any], detail: dict[str, Any], region: str
     imdb_id = external_ids.get("imdb_id")
 
     imdb_rating = request_omdb_rating(imdb_id)
+    trailer_key = extract_trailer_key(detail.get("videos", {}))
 
     return {
         "id": f"{slugify(title)}_{year}_{detail['id']}",
         "tmdbId": detail["id"],
+        "trailerKey": trailer_key,
         "imdbId": imdb_id,
         "imdbUrl": f"https://www.imdb.com/title/{imdb_id}/" if imdb_id else None,
         "title": title,
@@ -256,10 +288,12 @@ def normalize_series(summary: dict[str, Any], detail: dict[str, Any], region: st
     episode_runtimes = detail.get("episode_run_time") or []
 
     imdb_rating = request_omdb_rating(imdb_id)
+    trailer_key = extract_trailer_key(detail.get("videos", {}))
 
     return {
         "id": f"{slugify(title)}_{year}_{detail['id']}",
         "tmdbId": detail["id"],
+        "trailerKey": trailer_key,
         "imdbId": imdb_id,
         "imdbUrl": f"https://www.imdb.com/title/{imdb_id}/" if imdb_id else None,
         "title": title,
@@ -325,9 +359,16 @@ def collect_catalog(limit: int, region: str, max_pages: int, request_delay: floa
 
     for index, summary in enumerate(movie_summaries, start=1):
         try:
+            # detail = request_json(
+            #     f"/movie/{summary['id']}",
+            #     {"append_to_response": "credits,keywords,release_dates,watch/providers,external_ids"},
+            # )
+
             detail = request_json(
                 f"/movie/{summary['id']}",
-                {"append_to_response": "credits,keywords,release_dates,watch/providers,external_ids"},
+                {
+                    "append_to_response": "credits,keywords,release_dates,watch/providers,external_ids,videos"
+                },
             )
         except RequestFailedError as error:
             print(f"Skipping movie {summary.get('id')}: {error}")
@@ -342,10 +383,18 @@ def collect_catalog(limit: int, region: str, max_pages: int, request_delay: floa
     movie_count = len(output)
     for index, summary in enumerate(series_summaries, start=1):
         try:
+            # detail = request_json(
+            #     f"/tv/{summary['id']}",
+            #     {"append_to_response": "credits,keywords,content_ratings,watch/providers,external_ids"},
+            # )
+
             detail = request_json(
                 f"/tv/{summary['id']}",
-                {"append_to_response": "credits,keywords,content_ratings,watch/providers,external_ids"},
+                {
+                    "append_to_response": "credits,keywords,content_ratings,watch/providers,external_ids,videos"
+                },
             )
+
         except RequestFailedError as error:
             print(f"Skipping series {summary.get('id')}: {error}")
             continue

@@ -6,6 +6,7 @@ export type FeedbackValue = "like" | "dislike" | "not_seen";
 export type Title = {
   id: string;
   tmdbId?: number;
+  trailerKey?: string;
   imdbId?: string;
   imdbUrl?: string;
   title: string;

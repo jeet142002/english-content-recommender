@@ -19,6 +19,7 @@ class SessionPreferences(BaseModel):
 class Title(BaseModel):
     id: str
     tmdbId: int | None = None
+    trailerKey: str | None = None
     imdbId: str | None = None
     imdbUrl: str | None = None
     title: str

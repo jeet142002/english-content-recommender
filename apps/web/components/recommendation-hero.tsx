@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Film, RotateCcw, Sparkles, Star, Tv } from "lucide-react";
+import { Check, Film, RotateCcw, Sparkles, Star, Tv, X} from "lucide-react";
 
 import { PosterImage } from "@/components/poster-image";
 import type { RecommendationResult } from "@/lib/types";
@@ -13,6 +14,8 @@ type RecommendationHeroProps = {
 
 export function RecommendationHero({ recommendation, onRestart }: RecommendationHeroProps) {
   const { hero, backups, reasons, summary } = recommendation;
+  console.log(hero);
+  const [showTrailer, setShowTrailer] = useState(false);
   const runtimeLabel = hero.kind === "movie" ? `${hero.runtime} min` : `${hero.seasons ?? 0} seasons`;
 
   return (
@@ -74,6 +77,146 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
           border-radius: var(--radius-sm);
           background: #111420;
           box-shadow: 0 28px 78px rgba(0, 0, 0, 0.58);
+        }
+
+        .poster-overlay {
+          position: absolute;
+          inset: 0;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          border: 0;
+          padding: 0;
+          appearance: none;
+          cursor: pointer;
+
+          background: rgba(7, 8, 13, 0.18);
+
+          opacity: 0;
+
+          transition:
+            opacity 0.28s ease,
+            background 0.28s ease;
+
+          z-index: 1;
+        }
+
+        .poster-shell:hover .poster-overlay {
+          opacity: 1;
+          background: rgba(7, 8, 13, 0.42);
+        }
+
+        .poster-play {
+          display: grid;
+          place-items: center;
+
+          width: 78px;
+          height: 78px;
+
+          border: 1px solid rgba(255, 255, 255, 0.22);
+          border-radius: 50%;
+
+          background: rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(18px);
+
+          color: white;
+
+          font-size: 30px;
+
+          transform: scale(0.92);
+
+          transition:
+            transform 0.28s ease,
+            background 0.28s ease,
+            border-color 0.28s ease;
+        }
+
+        .poster-shell:hover .poster-play {
+          transform: scale(1);
+          background: rgba(255, 255, 255, 0.12);
+          border-color: rgba(255, 255, 255, 0.32);
+        }
+
+        .trailer-modal {
+          position: fixed;
+          inset: 0;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          padding: 24px;
+
+          background: rgba(4, 5, 8, 0.82);
+          backdrop-filter: blur(14px);
+
+          z-index: 1000;
+
+          animation: trailerFade 0.28s ease;
+        }
+
+        .trailer-dialog {
+          position: relative;
+
+          width: min(1100px, 100%);
+          border-radius: 18px;
+
+          overflow: hidden;
+
+          background: #0b0e16;
+
+          box-shadow:
+            0 40px 120px rgba(0, 0, 0, 0.72);
+
+          animation: trailerPop 0.32s ease;
+        }
+
+        .trailer-frame {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 16 / 9;
+        }
+
+        .trailer-frame iframe {
+          width: 100%;
+          height: 100%;
+          border: 0;
+        }
+
+        .trailer-close {
+          position: absolute;
+          top: 16px;
+          right: 16px;
+
+          z-index: 2;
+
+          display: grid;
+          place-items: center;
+
+          width: 42px;
+          height: 42px;
+
+          border: 0;
+          border-radius: 50%;
+
+          background: rgba(0, 0, 0, 0.58);
+
+          color: white;
+
+          cursor: pointer;
+
+          backdrop-filter: blur(10px);
+
+          transition:
+            transform 0.2s ease,
+            background 0.2s ease;
+        }
+
+        .trailer-close:hover {
+          transform: scale(1.06);
+          background: rgba(0, 0, 0, 0.78);
         }
 
         .match-badge {
@@ -274,6 +417,67 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
           line-height: 1.5;
         }
 
+        .hero-title-link {
+            text-decoration: none;
+            color: inherit;
+            display: inline-block;
+          }
+
+          .hero-title-link:hover .hero-title {
+            opacity: 0.92;
+          }
+
+          .hero-title-link:visited,
+          .hero-title-link:active,
+          .hero-title-link:focus {
+            color: inherit;
+            text-decoration: none;
+          }
+          .backup-title-link {
+              text-decoration: none;
+              color: inherit;
+              display: inline-block;
+            }
+
+            .backup-title-link:hover .backup-title {
+              opacity: 0.92;
+            }
+
+            .backup-title-link:visited,
+            .backup-title-link:active,
+            .backup-title-link:focus {
+              color: inherit;
+              text-decoration: none;
+            }
+            .backup-title {
+              transition: opacity 0.2s ease;
+            }
+            .hero-title {
+              transition: opacity 0.2s ease;
+            }
+
+            @keyframes trailerFade {
+              from {
+                opacity: 0;
+              }
+
+              to {
+                opacity: 1;
+              }
+            }
+
+            @keyframes trailerPop {
+              from {
+                opacity: 0;
+                transform: scale(0.96) translateY(10px);
+              }
+
+              to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+              }
+            }
+
         @media (max-width: 1060px) {
           .hero-layout {
             grid-template-columns: 1fr;
@@ -334,41 +538,6 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
             width: 64px;
           }
 
-          .hero-title-link {
-            text-decoration: none;
-            color: inherit;
-            display: inline-block;
-          }
-
-          .hero-title-link:hover .hero-title {
-            opacity: 0.92;
-          }
-
-          .hero-title-link:visited,
-          .hero-title-link:active,
-          .hero-title-link:focus {
-            color: inherit;
-            text-decoration: none;
-          }
-          .backup-title-link {
-              text-decoration: none;
-              color: inherit;
-              display: inline-block;
-            }
-
-            .backup-title-link:hover .backup-title {
-              opacity: 0.92;
-            }
-
-            .backup-title-link:visited,
-            .backup-title-link:active,
-            .backup-title-link:focus {
-              color: inherit;
-              text-decoration: none;
-            }
-            .backup-title {
-              transition: opacity 0.2s ease;
-            }
         }
       `}</style>
 
@@ -396,6 +565,37 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
               sizes="(max-width: 680px) 72vw, (max-width: 1060px) 70vw, 350px"
               priority
             />
+
+            {/* <div className="poster-overlay">
+              <div className="poster-play">
+                ▶
+              </div>
+            </div> */}
+
+            {/* <button
+              className="poster-overlay"
+              onClick={() => setShowTrailer(true)}
+              aria-label={`Watch trailer for ${hero.title}`}
+            ></button> */}
+
+            <button
+              className="poster-overlay"
+              onClick={() => setShowTrailer(true)}
+              aria-label={`Watch trailer for ${hero.title}`}
+            >
+              <div className="poster-play">
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+            </button>
+
             <div className="match-badge">
               <Star size={14} fill="currentColor" />
               Top match
@@ -410,15 +610,15 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
 
             {/* <h2 className="hero-title">{hero.title}</h2> */}
 
-                <a
-                  href={`https://www.google.com/search?q=${encodeURIComponent(hero.title)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hero-title-link"
-                  title={`Search "${hero.title}" on Google`}
-                >
-                  <h2 className="hero-title">{hero.title}</h2>
-                </a>
+            <a
+              href={`https://www.google.com/search?q=${encodeURIComponent(hero.title)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hero-title-link"
+              title={`Search "${hero.title}" on Google`}
+            >
+              <h2 className="hero-title">{hero.title}</h2>
+            </a>
 
             <div className="hero-meta">
               <span>{hero.year}</span>
@@ -428,11 +628,11 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
               <span>{hero.kind === "movie" ? <Film size={14} /> : <Tv size={14} />}</span>
               <span>{hero.genres.slice(0, 3).join(" / ")}</span>
               {hero.tmdbRating ? (
-              <>
-                <span className="meta-dot" />
-                <span>{hero.tmdbRating.toFixed(1)} TMDB</span>
-              </>
-            ) : null}
+                <>
+                  <span className="meta-dot" />
+                  <span>{hero.tmdbRating.toFixed(1)} TMDB</span>
+                </>
+              ) : null}
             </div>
 
             <p className="hero-synopsis">{hero.synopsis}</p>
@@ -467,6 +667,35 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
           </div>
         </div>
       </motion.div>
+
+      {showTrailer && hero.trailerKey && (
+        <div
+          className="trailer-modal"
+          onClick={() => setShowTrailer(false)}
+        >
+          <div
+            className="trailer-dialog"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="trailer-close"
+              onClick={() => setShowTrailer(false)}
+              aria-label="Close trailer"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="trailer-frame">
+              <iframe
+                src={`https://www.youtube.com/embed/${hero.trailerKey}?autoplay=1&rel=0&modestbranding=1`}
+                title={`${hero.title} trailer`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <motion.div
         className="backups-section"
@@ -506,18 +735,18 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
                   {title.title}
                 </div> */}
 
-                  <a
-                    href={`https://www.google.com/search?q=${encodeURIComponent(title.title)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="backup-title-link"
-                    title={`Search "${title.title}" on Google`}
-                  >
-                    <div className="backup-title">
-                      {title.kind === "movie" ? <Film size={14} /> : <Tv size={14} />}
-                      {title.title}
-                    </div>
-                  </a>
+                <a
+                  href={`https://www.google.com/search?q=${encodeURIComponent(title.title)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="backup-title-link"
+                  title={`Search "${title.title}" on Google`}
+                >
+                  <div className="backup-title">
+                    {title.kind === "movie" ? <Film size={14} /> : <Tv size={14} />}
+                    {title.title}
+                  </div>
+                </a>
 
                 <div className="backup-meta">
                   {title.year} - {title.genres.slice(0, 3).join(" / ")}

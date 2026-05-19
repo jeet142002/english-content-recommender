@@ -11,6 +11,7 @@ export type SessionPreferences = {
 export type Title = {
   id: string;
   tmdbId?: number;
+  trailerKey?: string;
   imdbId?: string;
   imdbUrl?: string;
   title: string;
