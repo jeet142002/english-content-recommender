@@ -16,6 +16,7 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
   const { hero, backups, reasons, summary } = recommendation;
   console.log(hero);
   const [showTrailer, setShowTrailer] = useState(false);
+  const [isSynopsisExpanded, setIsSynopsisExpanded] = useState(false);
   const runtimeLabel = hero.kind === "movie" ? `${hero.runtime} min` : `${hero.seasons ?? 0} seasons`;
 
   return (
@@ -276,16 +277,80 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
           font-weight: 850;
         }
 
-        .hero-synopsis {
-          display: -webkit-box;
+        // .hero-synopsis {
+        //   display: -webkit-box;
+        //   max-width: 700px;
+        //   overflow: hidden;
+        //   color: var(--text-soft);
+        //   font-size: 17px;
+        //   font-weight: 600;
+        //   line-height: 1.65;
+        //   -webkit-box-orient: vertical;
+        //   -webkit-line-clamp: 3;
+        // }
+
+        .hero-synopsis-wrapper {
           max-width: 700px;
-          overflow: hidden;
+        }
+
+        .hero-synopsis {
+          position: relative;
           color: var(--text-soft);
           font-size: 17px;
           font-weight: 600;
           line-height: 1.65;
+
+          transition:
+            max-height 0.35s ease,
+            opacity 0.25s ease;
+        }
+
+        .hero-synopsis.collapsed {
+          display: -webkit-box;
+          overflow: hidden;
+
           -webkit-box-orient: vertical;
           -webkit-line-clamp: 3;
+
+          mask-image: linear-gradient(
+            to bottom,
+            black 72%,
+            transparent 100%
+          );
+        }
+
+        .hero-synopsis.expanded {
+          display: block;
+        }
+
+        .hero-synopsis-toggle {
+          margin-top: 6px;
+
+          border: 0;
+          padding: 0;
+
+          background: transparent;
+
+          color: var(--text);
+
+          font-size: 14px;
+          font-weight: 800;
+
+          cursor: pointer;
+
+          opacity: 0.82;
+
+          transition:
+            opacity 0.2s ease,
+            transform 0.2s ease;
+        }
+
+        .hero-synopsis-toggle:hover {
+          opacity: 1;
+        }
+
+        .hero-synopsis-toggle:active {
+          transform: translateY(1px);
         }
 
         .summary-text {
@@ -635,7 +700,28 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
               ) : null}
             </div>
 
-            <p className="hero-synopsis">{hero.synopsis}</p>
+            {/* <p className="hero-synopsis">{hero.synopsis}</p> */}
+
+            <div className="hero-synopsis-wrapper">
+              <p
+                className={`hero-synopsis ${
+                  isSynopsisExpanded ? "expanded" : "collapsed"
+                }`}
+              >
+                {hero.synopsis}
+              </p>
+
+              <button
+                type="button"
+                className="hero-synopsis-toggle"
+                onClick={() =>
+                  setIsSynopsisExpanded((prev) => !prev)
+                }
+              >
+                {isSynopsisExpanded ? "show less" : "...more"}
+              </button>
+            </div>
+
             <div className="summary-text">{summary}</div>
 
             <div className="reasons-grid">
