@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Film, RotateCcw, Sparkles, Star, Tv, X} from "lucide-react";
+import { Check, ExternalLink, Film, RotateCcw, Sparkles, Star, Tv, X } from "lucide-react";
 
 import { PosterImage } from "@/components/poster-image";
 import type { RecommendationResult } from "@/lib/types";
@@ -17,7 +17,47 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
   console.log(hero);
   const [showTrailer, setShowTrailer] = useState(false);
   const [isSynopsisExpanded, setIsSynopsisExpanded] = useState(false);
+  const [showAllProviders, setShowAllProviders] = useState(false);
   const runtimeLabel = hero.kind === "movie" ? `${hero.runtime} min` : `${hero.seasons ?? 0} seasons`;
+
+  const normalizeProviderName = (provider: string) => {
+    if (provider.includes("Amazon Prime")) return "Prime Video";
+    if (provider.includes("Netflix")) return "Netflix";
+    if (provider.includes("HBO")) return "HBO Max";
+    if (provider.includes("Disney")) return "Disney+";
+    if (provider.includes("Hulu")) return "Hulu";
+    if (provider.includes("Apple TV")) return "Apple TV+";
+    if (provider.includes("Peacock")) return "Peacock";
+
+    return provider;
+  };
+
+  const deduplicatedProviders = Array.from(
+    new Map(
+      (hero.watchProviders ?? []).map((provider) => {
+        const normalized = normalizeProviderName(provider);
+
+        return [normalized, normalized];
+      })
+    ).values()
+  );
+
+  const visibleProviders = showAllProviders
+    ? deduplicatedProviders
+    : deduplicatedProviders.slice(0, 3);
+
+  const tmdbUrl = `https://www.themoviedb.org/${hero.kind === "movie" ? "movie" : "tv"
+    }/${hero.tmdbId}`;
+
+  const formatTag = (value: string) =>
+  value
+    .split(" ")
+    .map(
+      (word) =>
+        word.charAt(0).toUpperCase() +
+        word.slice(1)
+    )
+    .join(" ");
 
   return (
     <motion.section
@@ -65,7 +105,7 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
           display: grid;
           grid-template-columns: minmax(250px, 360px) minmax(0, 1fr);
           gap: clamp(28px, 5%, 64px);
-          align-items: end;
+          align-items: start;
           padding: var(--space-8);
         }
 
@@ -277,6 +317,41 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
           font-weight: 850;
         }
 
+        .meta-link {
+          display: inline-flex;
+          align-items: center;
+
+          color: inherit;
+          text-decoration: none;
+
+          transition:
+            color 0.22s ease,
+            opacity 0.22s ease,
+            transform 0.22s ease,
+            text-shadow 0.22s ease;
+        }
+
+        .meta-link:hover {
+          color: rgba(255, 255, 255, 0.98);
+          transform: translateY(-1px);
+
+          text-shadow:
+            0 0 12px rgba(255, 255, 255, 0.18);
+        }
+
+        .meta-link:visited,
+        .meta-link:active,
+        .meta-link:focus {
+          color: inherit;
+          text-decoration: none;
+        }
+
+        .meta-link:focus-visible {
+          outline: 2px solid rgba(133, 205, 255, 0.7);
+          outline-offset: 3px;
+          border-radius: 6px;
+        }
+
         // .hero-synopsis {
         //   display: -webkit-box;
         //   max-width: 700px;
@@ -345,6 +420,96 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
             transform 0.2s ease;
         }
 
+        .about-pick-panel {
+          margin-top: 18px;
+
+          width: fit-content;
+          max-width: 620px;
+
+          padding: 18px;
+
+          border: 1px solid rgba(255,255,255,0.10);
+          border-radius: 14px;
+
+          background: rgba(255,255,255,0.04);
+          backdrop-filter: blur(18px);
+        }
+
+        .about-pick-grid {
+          display: grid;
+
+          grid-template-columns:
+            minmax(220px, 1fr)
+            minmax(220px, 1fr);
+
+          gap: 20px 28px;
+
+          align-items: start;
+        }
+        
+        .about-pick-title {
+          margin-bottom: 16px;
+
+          color: var(--text);
+
+          font-size: 15px;
+          font-weight: 900;
+          letter-spacing: 0.02em;
+
+          text-transform: uppercase;
+        }
+
+        .about-pick-item {
+          margin-bottom: 18px;
+        }
+
+        .about-pick-item:last-child {
+          margin-bottom: 0;
+        }
+
+        .about-pick-label {
+          display: block;
+
+          margin-bottom: 6px;
+
+          color: var(--text-secondary);
+
+          font-size: 12px;
+          font-weight: 800;
+
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .about-pick-value {
+          color: var(--text);
+
+          font-size: 14px;
+          font-weight: 700;
+
+          line-height: 1.6;
+        }
+
+        .about-chip-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .about-chip {
+          padding: 6px 12px;
+
+          border: 1px solid rgba(255,255,255,0.10);
+          border-radius: 999px;
+
+          background: rgba(255,255,255,0.05);
+
+          color: rgba(255,255,255,0.92);
+
+          font-size: 12px;
+          font-weight: 700;
+        }
+
         .hero-synopsis-toggle:hover {
           opacity: 1;
         }
@@ -359,6 +524,81 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
           font-size: 15px;
           font-weight: 800;
           line-height: 1.55;
+        }
+
+        .providers-section {
+          display: grid;
+          gap: 10px;
+          margin-top: 14px;
+          margin-bottom: 18px;
+        }
+
+        .providers-label {
+          color: rgba(255, 255, 255, 0.72);
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+        }
+
+        .providers-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+
+        .provider-chip,
+        .providers-toggle {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 9px 14px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.06);
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 12px;
+          font-weight: 700;
+          text-decoration: none;
+          backdrop-filter: blur(14px);
+          transition:
+            transform 0.22s ease,
+            border-color 0.22s ease,
+            background 0.22s ease,
+            box-shadow 0.22s ease,
+            color 0.22s ease;
+        }
+
+        .provider-chip svg {
+          opacity: 0.62;
+          transition:
+            opacity 0.22s ease,
+            transform 0.22s ease;
+        }
+
+        .provider-chip:hover,
+        .providers-toggle:hover {
+          transform: translateY(-1px);
+          border-color: rgba(133, 205, 255, 0.34);
+          background: rgba(255, 255, 255, 0.1);
+          box-shadow:
+            0 8px 24px rgba(40, 120, 255, 0.12),
+            0 0 0 1px rgba(133, 205, 255, 0.08);
+        }
+
+        .provider-chip:hover svg {
+          opacity: 1;
+          transform: translate(1px, -1px);
+        }
+
+        .providers-toggle {
+          cursor: pointer;
+        }
+
+        .providers-toggle:focus-visible,
+        .provider-chip:focus-visible {
+          outline: 2px solid rgba(133, 205, 255, 0.7);
+          outline-offset: 2px;
         }
 
         .reasons-grid {
@@ -692,17 +932,47 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
               <span className="meta-dot" />
               <span>{hero.kind === "movie" ? <Film size={14} /> : <Tv size={14} />}</span>
               <span>{hero.genres.slice(0, 3).join(" / ")}</span>
+
               {hero.tmdbRating ? (
                 <>
                   <span className="meta-dot" />
-                  <span>{hero.tmdbRating.toFixed(1)} TMDB</span>
+
+                  <a
+                    href={tmdbUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="meta-link"
+                    title={`View "${hero.title}" on TMDB`}
+                  >
+                    {hero.tmdbRating.toFixed(1)} TMDB
+                  </a>
                 </>
               ) : null}
+
+              {hero.imdbUrl ? (
+                <>
+                  <span className="meta-dot" />
+
+                  <a
+                    href={hero.imdbUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="meta-link"
+                    title={`View "${hero.title}" on IMDb`}
+                  >
+                    IMDb
+                  </a>
+                </>
+              ) : null}
+
+
+
             </div>
 
             {/* <p className="hero-synopsis">{hero.synopsis}</p> */}
 
             <div className="hero-synopsis-wrapper">
+
               <p
                 className={`hero-synopsis ${
                   isSynopsisExpanded ? "expanded" : "collapsed"
@@ -711,6 +981,99 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
                 {hero.synopsis}
               </p>
 
+              {isSynopsisExpanded && (
+                <div className="about-pick-panel">
+
+                  <div className="about-pick-title">
+                    About this pick
+                  </div>
+
+                  {hero.director && (
+                    <div className="about-pick-item">
+                      <span className="about-pick-label">
+                        {hero.kind === "movie"
+                          ? "Directed by"
+                          : "Created by"}
+                      </span>
+
+                      <span className="about-pick-value">
+                        {hero.director}
+                      </span>
+                    </div>
+                  )}
+
+                  {hero.cast?.length ? (
+                    <div className="about-pick-item">
+                      <span className="about-pick-label">
+                        Starring
+                      </span>
+
+                      <span className="about-pick-value">
+                        {hero.cast.slice(0, 3).join(" • ")}
+                      </span>
+                    </div>
+                  ) : null}
+
+                  {hero.tone?.length ? (
+                    <div className="about-pick-item">
+                      <span className="about-pick-label">
+                        Mood
+                      </span>
+
+                      <div className="about-chip-row">
+                        {hero.tone.map((tone) => (
+                          <span
+                            key={tone}
+                            className="about-chip"
+                          >
+                            {formatTag(tone)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {hero.style?.length ? (
+                    <div className="about-pick-item">
+                      <span className="about-pick-label">
+                        Style
+                      </span>
+
+                      <div className="about-chip-row">
+                        {hero.style.map((style) => (
+                          <span
+                            key={style}
+                            className="about-chip"
+                          >
+                            {formatTag(style)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {hero.subgenres?.length ? (
+                    <div className="about-pick-item">
+                      <span className="about-pick-label">
+                        Themes
+                      </span>
+
+                      <div className="about-chip-row">
+                        {hero.subgenres.slice(0, 4).map((theme) => (
+                          <span
+                            key={theme}
+                            className="about-chip"
+                          >
+                            {formatTag(theme)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                </div>
+              )}
+
               <button
                 type="button"
                 className="hero-synopsis-toggle"
@@ -718,9 +1081,53 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
                   setIsSynopsisExpanded((prev) => !prev)
                 }
               >
-                {isSynopsisExpanded ? "show less" : "...more"}
+                {isSynopsisExpanded
+                  ? "show less"
+                  : "...more"}
               </button>
+
             </div>
+
+            {deduplicatedProviders.length > 0 && (
+              <div className="providers-section">
+                <div className="providers-label">
+                  Stream on
+                </div>
+
+                <div className="providers-row">
+                  {visibleProviders.map((provider) => (
+                    <a
+                      key={provider}
+                      href={`https://www.google.com/search?q=${encodeURIComponent(
+                        `${hero.title} ${provider}`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="provider-chip"
+                      title={`Search "${hero.title}" on ${provider}`}
+                    >
+                      <span>{provider}</span>
+
+                      <ExternalLink size={13} />
+                    </a>
+                  ))}
+
+                  {deduplicatedProviders.length > 3 && (
+                    <button
+                      type="button"
+                      className="providers-toggle"
+                      onClick={() =>
+                        setShowAllProviders((prev) => !prev)
+                      }
+                    >
+                      {showAllProviders
+                        ? "Show less"
+                        : `+${deduplicatedProviders.length - 3} more`}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="summary-text">{summary}</div>
 
