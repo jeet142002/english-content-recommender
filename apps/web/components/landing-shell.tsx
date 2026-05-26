@@ -328,7 +328,7 @@ export function LandingShell({ onStart }: LandingShellProps) {
 
         .stack-poster {
           position: absolute;
-          width: 190px;
+          width: 180px;
           aspect-ratio: 2 / 3;
 
           overflow: hidden;
