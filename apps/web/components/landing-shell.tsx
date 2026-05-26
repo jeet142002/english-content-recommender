@@ -300,7 +300,9 @@ export function LandingShell({ onStart }: LandingShellProps) {
           width: 100%;
           max-width: 420px;
           height: 420px;
-          margin: 0 auto;
+          margin-left: -80px;
+          margin-right: 0;
+          // margin: 0 auto;
         }
 
         .queued-pill {
