@@ -1,7 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { ArrowRight, Play } from "lucide-react";
+import type { LandingFeaturedTitle } from "@/lib/types";
+import { getLandingPosters } from "@/lib/api-client";
 
 import { PosterImage } from "@/components/poster-image";
 
@@ -9,31 +12,49 @@ type LandingShellProps = {
   onStart: () => void;
 };
 
-const posters = [
-  "https://image.tmdb.org/t/p/w500/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg",
-  "https://image.tmdb.org/t/p/w500/pPHpeI2X1qEd1CS1SeyrdhZ4qnT.jpg",
-  "https://image.tmdb.org/t/p/w500/27vEYsRKaDCR1j6NqN8j2p1LSfa.jpg",
-  "https://image.tmdb.org/t/p/w500/6izwz7rsy95ARzTR3poZ8H6c5pp.jpg",
-  "https://image.tmdb.org/t/p/w500/sHFlbKS3WLqMnp9tBihxotX0Awh.jpg",
-];
 
 export function LandingShell({ onStart }: LandingShellProps) {
+
+  const [posters, setPosters] = useState<string[]>([]);
+
+  useEffect(() => {
+  let cancelled = false;
+
+  async function loadPosters() {
+    try {
+      const data = await getLandingPosters();
+
+      if (!cancelled) {
+        setPosters(data.posters);
+      }
+    } catch (error) {
+      console.error("Failed to load landing posters", error);
+    }
+  }
+
+  loadPosters();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
+  //console.log(featuredTitle);
+
   return (
     <section className="landing-section">
       <style jsx>{`
+
         .landing-section {
           position: relative;
-          overflow: hidden;
           display: grid;
-          min-height: calc(100vh - 88px);
           align-items: center;
-          padding: var(--space-8) 0 var(--space-12);
         }
 
         .landing-stage {
           position: relative;
           display: grid;
-          grid-template-columns: minmax(0, 0.92fr) minmax(320px, 0.72fr);
+          grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
           gap: var(--space-12);
           align-items: center;
         }
@@ -41,9 +62,28 @@ export function LandingShell({ onStart }: LandingShellProps) {
         .hero-copy {
           position: relative;
           z-index: 2;
-          display: grid;
           max-width: 700px;
-          gap: var(--space-6);
+          gap: var(--space-7);
+          display: flex;
+          flex-direction: column;
+        }
+
+        .hero-message {
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+        }
+
+        .hero-description-group {
+          margin-top: 28px;
+        }
+
+        .hero-actions {
+          margin-top: 34px;
+
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
         }
 
         .kicker {
@@ -60,10 +100,10 @@ export function LandingShell({ onStart }: LandingShellProps) {
 
         .hero-title {
           color: var(--text);
-          font-size: 92px;
+          font-size: 76px;
           font-weight: 900;
           letter-spacing: 0;
-          line-height: 0.93;
+          line-height: 0.95;
           text-wrap: balance;
         }
 
@@ -86,7 +126,13 @@ export function LandingShell({ onStart }: LandingShellProps) {
           flex-wrap: wrap;
           align-items: center;
           gap: var(--space-4);
-          padding-top: var(--space-3);
+          // padding-top: var(--space-5);
+        }
+
+        .cta-note {
+          color: var(--text-secondary);
+          font-size: 15px;
+          font-weight: 700;
         }
 
         .primary-cta {
@@ -121,10 +167,76 @@ export function LandingShell({ onStart }: LandingShellProps) {
         .poster-field {
           position: relative;
           display: grid;
-          height: 620px;
+          height: 420px;
           align-items: center;
           justify-items: center;
           pointer-events: none;
+        }
+
+        .poster-placeholder {
+          display: grid;
+          place-items: center;
+          width: 100%;
+          height: 420px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 28px;
+          background: rgba(255, 255, 255, 0.03);
+          color: var(--text-secondary);
+          font-size: 20px;
+          font-weight: 800;
+        }
+
+        .queued-card {
+          width: 340px;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+
+          padding: 18px;
+
+          border-radius: 28px;
+
+          text-decoration: none;
+          color: inherit;
+
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.08);
+
+          transition: all 0.25s ease;
+        }
+
+        .queued-card:hover {
+          transform: translateY(-6px);
+          border-color: rgba(255,255,255,0.18);
+        }
+
+        .queued-label {
+          font-size: 12px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.12em;
+          color: var(--gold);
+        }
+
+        .queued-poster-wrap {
+          overflow: hidden;
+          border-radius: 18px;
+        }
+
+        .queued-content h3 {
+          margin: 0;
+          font-size: 22px;
+        }
+
+        .queued-content p {
+          margin: 4px 0;
+          color: var(--text-secondary);
+        }
+
+        .queued-content span {
+          display: block;
+          color: var(--text-muted);
+          margin-top: 4px;
         }
 
         .poster-card {
@@ -182,24 +294,81 @@ export function LandingShell({ onStart }: LandingShellProps) {
           transform: translate(-130px, -154px) rotate(-13deg);
           opacity: 0.66;
         }
-
-        .swipe-hint {
-          position: absolute;
-          right: 38px;
-          bottom: 82px;
-          z-index: 7;
-          display: inline-flex;
-          align-items: center;
-          gap: var(--space-2);
-          padding: var(--space-2) var(--space-3);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: var(--radius-full);
-          background: rgba(7, 8, 13, 0.72);
-          color: var(--text-soft);
-          font-size: 12px;
-          font-weight: 900;
-          backdrop-filter: blur(18px);
+        
+        .poster-stack {
+          position: relative;
+          width: 100%;
+          max-width: 420px;
+          height: 420px;
+          margin: 0 auto;
         }
+
+        .queued-pill {
+          position: absolute;
+          top: 12px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 20;
+
+          padding: 10px 18px;
+          border-radius: 999px;
+
+          background: rgba(12, 18, 30, 0.85);
+          border: 1px solid rgba(255,255,255,0.08);
+
+          color: rgba(255,255,255,0.92);
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+
+          backdrop-filter: blur(12px);
+        }
+
+        .stack-poster {
+          position: absolute;
+          width: 190px;
+          aspect-ratio: 2 / 3;
+
+          overflow: hidden;
+          border-radius: 20px;
+
+          border: 1px solid rgba(255,255,255,0.08);
+
+          box-shadow:
+            0 30px 60px rgba(0,0,0,0.45);
+        }
+
+        .stack-poster img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .stack-poster-0 {
+          left: 40px;
+          top: 110px;
+          transform: rotate(-12deg);
+          z-index: 1;
+          opacity: 0.75;
+        }
+
+        .stack-poster-1 {
+          left: 145px;
+          top: 65px;
+          transform: rotate(8deg);
+          z-index: 3;
+          opacity: 1;
+        }
+
+        .stack-poster-2 {
+          left: 250px;
+          top: 120px;
+          transform: rotate(-3deg);
+          z-index: 2;
+          opacity: 0.75;
+        }
+
+
 
         @media (max-width: 980px) {
           .landing-stage {
@@ -214,7 +383,7 @@ export function LandingShell({ onStart }: LandingShellProps) {
           }
 
           .hero-title {
-            font-size: 72px;
+            font-size: 60px;
           }
 
           .subtitle {
@@ -273,56 +442,63 @@ export function LandingShell({ onStart }: LandingShellProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.56, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="kicker">
-            <Play size={14} fill="currentColor" />
-            CineSwipe
+
+          <div className="hero-message">
+            <div className="kicker">
+              <Play size={14} fill="currentColor" />
+              CineSwipe
+            </div>
+
+            <h1 className="hero-title">
+              Stop scrolling.
+              <span>Start watching.</span>
+            </h1>
+
           </div>
 
-          <h1 className="hero-title">
-            Stop scrolling.
-            <span>Start watching.</span>
-          </h1>
+          <div className="hero-description-group">
 
-          <p className="subtitle">Swipe through a few titles. CineSwipe locks onto the one worth pressing play on.</p>
+            <p className="subtitle">
+              Swipe through a few titles. CineSwipe locks onto the one worth pressing play on.
+            </p>
 
-          <div className="cta-row">
-            <button onClick={onStart} className="primary-cta" data-testid="landing-start">
-              Start swiping
-              <ArrowRight size={18} />
-            </button>
-            <span className="quick-note">No account. No quiz. Just momentum.</span>
+          </div>
+
+          <div className="hero-actions">
+
+            <div className="cta-row">
+              <button
+                onClick={onStart}
+                className="primary-cta"
+                data-testid="landing-start"
+              >
+                Start swiping
+                <ArrowRight size={18} />
+              </button>
+            </div>
+
+            <div className="cta-note">
+              <span className="quick-note">
+                No signup • No setup • 30 seconds
+              </span>
+            </div>
+
           </div>
         </motion.div>
 
-        <motion.div
-          className="poster-field"
-          aria-hidden="true"
-          initial={{ opacity: 0, x: 26 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-        >
+        <div className="poster-stack">
+          <div className="queued-pill">Queued Up</div>
+
           {posters.map((poster, index) => (
             <div
-              key={poster}
-              className="poster-card"
+              key={index}
+              className={`stack-poster stack-poster-${index}`}
             >
-              <motion.div
-                className="poster-float"
-                animate={{ y: index % 2 === 0 ? [0, -10, 0] : [0, 8, 0] }}
-                transition={{ duration: 5 + index, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <PosterImage
-                  src={poster}
-                  alt=""
-                  label={index === 0 ? "Tonight" : index === 1 ? "CineSwipe" : "Press play"}
-                  sizes="300px"
-                  priority={index < 2}
-                />
-              </motion.div>
+              <img src={poster} alt="" />
             </div>
           ))}
-          <div className="swipe-hint">Swipe the deck</div>
-        </motion.div>
+        </div>
+
       </div>
     </section>
   );

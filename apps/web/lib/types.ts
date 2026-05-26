@@ -55,3 +55,18 @@ export type RecommendationResult = {
   reasons: RecommendationReason[];
   summary: string;
 };
+
+export type LandingFeaturedTitle = {
+  title: string;
+  posterUrl: string;
+  genres: string[];
+  tmdbRating: number | null;
+  kind: string;
+  runtime: number;
+  seasons: number | null;
+  tmdbId: number;
+};
+
+export interface LandingPostersResponse {
+  posters: string[];
+}

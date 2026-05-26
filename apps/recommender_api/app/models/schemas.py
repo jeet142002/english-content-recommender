@@ -97,3 +97,16 @@ class FeedbackRequest(BaseModel):
 
 class StopRequest(BaseModel):
     sessionId: str
+
+class LandingFeaturedTitle(BaseModel):
+    title: str
+    posterUrl: str
+    genres: list[str]
+    tmdbRating: float | None = None
+    kind: str
+    runtime: int = 0
+    seasons: int | None = None
+    tmdbId: int
+
+class LandingPostersResponse(BaseModel):
+    posters: list[str]

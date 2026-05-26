@@ -4,6 +4,8 @@ import type {
   FeedbackValue,
   RecommendationResult,
   SessionTitleResponse,
+  LandingFeaturedTitle,
+  LandingPostersResponse,
 } from "./types";
 
 const directApiBaseUrl = process.env.NEXT_PUBLIC_RECOMMENDER_API_BASE_URL?.replace(/\/$/, "");
@@ -61,4 +63,12 @@ export function stopSession(sessionId: string) {
 
 export function healthcheck() {
   return apiFetch<{ ok: boolean; catalogSize: number; sessionStore?: string }>("/health");
+}
+
+export function getLandingFeatured() {
+  return apiFetch<LandingFeaturedTitle>("/landing-featured");
+}
+
+export function getLandingPosters() {
+  return apiFetch<LandingPostersResponse>("/landing-posters");
 }
