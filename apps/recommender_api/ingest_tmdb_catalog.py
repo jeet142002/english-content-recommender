@@ -8,9 +8,11 @@ import socket
 import time
 from pathlib import Path
 from typing import Any
-from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -18,6 +20,23 @@ TMDB_API_BASE = "https://api.themoviedb.org/3"
 TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500"
 OMDB_API_BASE = "https://www.omdbapi.com/"
 REQUEST_TIMEOUT_SECONDS = 30
+DEFAULT_CATALOG_LIMIT = int(os.environ.get("TMDB_CATALOG_LIMIT", "240"))
+DEFAULT_MAX_PAGES = int(os.environ.get("TMDB_MAX_PAGES", "50"))
+DEFAULT_REQUEST_DELAY = float(os.environ.get("TMDB_REQUEST_DELAY", "1.2"))
+
+session = requests.Session()
+
+retry_strategy = Retry(
+    total=5,
+    backoff_factor=2,
+    status_forcelist=[429, 500, 502, 503, 504, 520, 521, 522, 524],
+    allowed_methods=["GET"],
+)
+
+adapter = HTTPAdapter(max_retries=retry_strategy)
+
+session.mount("https://", adapter)
+session.mount("http://", adapter)
 
 
 class RequestFailedError(RuntimeError):
@@ -38,68 +57,95 @@ def sleep_for_retry(attempt: int, retry_after: str | None = None) -> None:
     time.sleep(min(30.0, 1.5 * (2 ** (attempt - 1))))
 
 
-def request_json(
-    path: str,
-    params: dict[str, object] | None = None,
-    *,
-    retries: int = 5,
-) -> dict[str, Any]:
-    api_key = os.environ.get("TMDB_API_KEY")
-    api_token = os.environ.get("TMDB_API_TOKEN")
-    auth_value = api_token or api_key
-    if not auth_value:
-        raise RuntimeError("TMDB_API_KEY or TMDB_API_TOKEN is required to ingest a generated catalog.")
+def request_json(path, params=None):
+    api_key = os.getenv("TMDB_API_KEY")
+    api_token = os.getenv("TMDB_API_TOKEN")
 
-    query_params = dict(params or {})
+    if not api_key and not api_token:
+        raise RuntimeError(
+            "TMDB_API_KEY or TMDB_API_TOKEN is required."
+        )
+
+    url = f"{TMDB_API_BASE}{path}"
+
     headers = {
         "Accept": "application/json",
-        "User-Agent": "english-content-recommender/0.1",
+        "User-Agent": "Mozilla/5.0",
     }
-    if api_token or is_bearer_token(auth_value):
-        headers["Authorization"] = f"Bearer {auth_value}"
+
+    if api_token:
+        headers["Authorization"] = f"Bearer {api_token}"
     else:
-        query_params["api_key"] = auth_value
+        params = params or {}
+        params["api_key"] = api_key
 
-    query = urlencode(query_params)
-    request = Request(f"{TMDB_API_BASE}{path}?{query}", headers=headers)
+    try:
+        response = session.get(
+            url,
+            params=params,
+            headers=headers,
+            timeout=30,
+        )
 
-    for attempt in range(1, retries + 1):
-        try:
-            with urlopen(request, timeout=REQUEST_TIMEOUT_SECONDS) as response:
-                return json.loads(response.read().decode("utf-8"))
-        except HTTPError as error:
-            if error.code in {429, 500, 502, 503, 504} and attempt < retries:
-                print(f"TMDB {error.code} for {path}; retrying {attempt}/{retries - 1}...")
-                sleep_for_retry(attempt, error.headers.get("Retry-After"))
-                continue
-            raise RequestFailedError(f"TMDB request failed for {path}: HTTP {error.code}") from error
-        except (ConnectionResetError, TimeoutError, URLError, socket.timeout) as error:
-            if attempt < retries:
-                print(f"Network error for {path}: {error}; retrying {attempt}/{retries - 1}...")
-                sleep_for_retry(attempt)
-                continue
-            raise RequestFailedError(f"TMDB request failed for {path} after {retries} attempts: {error}") from error
+        response.raise_for_status()
 
-    raise RequestFailedError(f"TMDB request failed for {path}")
+        return response.json()
+
+    except requests.exceptions.RequestException as error:
+        raise RequestFailedError(
+            f"TMDB request failed for {path}: {error}"
+        ) from error
 
 
 def request_omdb_rating(imdb_id: str | None) -> float | None:
     api_key = os.environ.get("OMDB_API_KEY")
+
     if not api_key or not imdb_id:
         return None
 
-    query = urlencode({"apikey": api_key, "i": imdb_id})
-    request = Request(f"{OMDB_API_BASE}?{query}", headers={"Accept": "application/json"})
     try:
-        with urlopen(request, timeout=30) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-    except Exception:
+        response = session.get(
+            OMDB_API_BASE,
+            params={
+                "apikey": api_key,
+                "i": imdb_id,
+            },
+            timeout=20,
+        )
+
+        response.raise_for_status()
+
+        payload = response.json()
+
+    except requests.exceptions.RequestException:
         return None
 
     rating = payload.get("imdbRating")
+
     if not rating or rating == "N/A":
         return None
+
     return float(rating)
+
+
+def chunked_target_counts(count: int, weights: list[int]) -> list[int]:
+    if count <= 0:
+        return [0 for _ in weights]
+
+    total_weight = sum(weights)
+    raw = [(count * weight) / total_weight for weight in weights]
+    counts = [int(value) for value in raw]
+    remainder = count - sum(counts)
+
+    ranked_indexes = sorted(
+        range(len(weights)),
+        key=lambda index: raw[index] - counts[index],
+        reverse=True,
+    )
+    for index in ranked_indexes[:remainder]:
+        counts[index] += 1
+
+    return counts
 
 
 def slugify(value: str) -> str:
@@ -324,29 +370,129 @@ def normalize_series(summary: dict[str, Any], detail: dict[str, Any], region: st
 
 
 def collect_summaries(kind: str, limit: int, max_pages: int, request_delay: float) -> list[dict[str, Any]]:
-    endpoint = "/discover/movie" if kind == "movie" else "/discover/tv"
-    vote_floor = 500 if kind == "movie" else 200
-    summaries: list[dict[str, Any]] = []
-    page = 1
+    feed_configs = {
+        "movie": [
+            (
+                "popular-discover",
+                "/discover/movie",
+                {
+                    "include_adult": "false",
+                    "sort_by": "popularity.desc",
+                    "vote_count.gte": 350,
+                    "with_original_language": "en",
+                },
+                5,
+            ),
+            (
+                "top-rated",
+                "/movie/top_rated",
+                {"language": "en-US"},
+                2,
+            ),
+            (
+                "trending",
+                "/trending/movie/week",
+                {"language": "en-US"},
+                2,
+            ),
+            (
+                "now-playing",
+                "/movie/now_playing",
+                {"language": "en-US", "region": "US"},
+                2,
+            ),
+            (
+                "upcoming",
+                "/movie/upcoming",
+                {"language": "en-US", "region": "US"},
+                2,
+            ),
+        ],
+        "series": [
+            (
+                "popular-discover",
+                "/discover/tv",
+                {
+                    "include_adult": "false",
+                    "sort_by": "popularity.desc",
+                    "vote_count.gte": 120,
+                    "with_original_language": "en",
+                },
+                5,
+            ),
+            (
+                "top-rated",
+                "/tv/top_rated",
+                {"language": "en-US"},
+                2,
+            ),
+            (
+                "trending",
+                "/trending/tv/week",
+                {"language": "en-US"},
+                2,
+            ),
+            (
+                "on-the-air",
+                "/tv/on_the_air",
+                {"language": "en-US"},
+                2,
+            ),
+            (
+                "airing-today",
+                "/tv/airing_today",
+                {"language": "en-US"},
+                1,
+            ),
+        ],
+    }
+
+    configs = feed_configs[kind]
+    target_counts = chunked_target_counts(limit, [weight for _, _, _, weight in configs])
+    summaries_by_id: dict[int, dict[str, Any]] = {}
     label = "movies" if kind == "movie" else "series"
 
-    while len(summaries) < limit and page <= max_pages:
-        payload = request_json(
-            endpoint,
-            {
-                "include_adult": "false",
-                "sort_by": "popularity.desc",
-                "vote_count.gte": vote_floor,
-                "with_original_language": "en",
-                "page": page,
-            },
-        )
-        summaries.extend(payload.get("results", []))
-        print(f"Fetched {label} discovery page {page}; {min(len(summaries), limit)}/{limit} summaries.")
-        page += 1
-        time.sleep(request_delay)
+    for (feed_label, endpoint, base_params, _weight), target_count in zip(configs, target_counts):
+        if target_count <= 0:
+            continue
 
-    return summaries[:limit]
+        page = 1
+        collected_for_feed = 0
+        while collected_for_feed < target_count and page <= max_pages:
+            params = dict(base_params)
+            params["page"] = page
+            payload = request_json(endpoint, params)
+
+            page_results = payload.get("results", [])
+            before = len(summaries_by_id)
+            for item in page_results:
+                title_id = item.get("id")
+                if not title_id:
+                    continue
+                if (item.get("original_language") or "").lower() != "en":
+                    continue
+                summaries_by_id.setdefault(title_id, item)
+
+            added = len(summaries_by_id) - before
+            collected_for_feed += added
+            print(
+                f"Fetched {label} feed {feed_label} page {page}; "
+                f"{min(collected_for_feed, target_count)}/{target_count} unique items from this feed."
+            )
+            if not page_results:
+                break
+            page += 1
+            time.sleep(request_delay)
+
+    ordered = sorted(
+        summaries_by_id.values(),
+        key=lambda item: (
+            -float(item.get("popularity") or 0),
+            -(item.get("vote_count") or 0),
+            item.get("title") or item.get("name") or "",
+        ),
+    )
+    return ordered[:limit]
 
 
 def collect_catalog(limit: int, region: str, max_pages: int, request_delay: float) -> list[dict[str, Any]]:
@@ -411,10 +557,10 @@ def collect_catalog(limit: int, region: str, max_pages: int, request_delay: floa
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate a local recommender catalog from TMDB.")
-    parser.add_argument("--limit", type=int, default=120, help="Target number of normalized titles.")
+    parser.add_argument("--limit", type=int, default=DEFAULT_CATALOG_LIMIT, help="Target number of normalized titles.")
     parser.add_argument("--region", default=os.environ.get("WATCH_REGION", "US"), help="Watch provider region.")
-    parser.add_argument("--max-pages", type=int, default=50, help="Maximum TMDB discovery pages per content type.")
-    parser.add_argument("--request-delay", type=float, default=0.35, help="Delay between TMDB requests in seconds.")
+    parser.add_argument("--max-pages", type=int, default=DEFAULT_MAX_PAGES, help="Maximum TMDB pages per feed.")
+    parser.add_argument("--request-delay", type=float, default=DEFAULT_REQUEST_DELAY, help="Delay between TMDB requests in seconds.")
     parser.add_argument(
         "--output",
         default="data/seeds/english_titles.generated.json",

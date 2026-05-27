@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Automated TMDB data update script for production deployment.
-Run this script periodically (e.g., weekly) to keep the catalog fresh.
+Run this script periodically (for example, daily) to keep the catalog fresh.
 """
 
 import os

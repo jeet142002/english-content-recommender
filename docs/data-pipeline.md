@@ -72,9 +72,11 @@ $env:CATALOG_PATH="data/seeds/english_titles.generated.json"
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir apps/recommender_api --port 8000
 ```
 
-This keeps the app usable with the small checked-in seed while giving development a path to 100+ real titles without hand-writing metadata. A production catalog should move this into a scheduled ingestion job and persist normalized titles in the database.
+This keeps the app usable with the small checked-in seed while giving development a path to 100+ real titles without hand-writing metadata. The ingester now blends popular, top-rated, trending, and release-focused TMDB feeds so the catalog expands beyond a single popularity list and picks up fresher titles.
+A production setup should run this as a scheduled ingestion job and persist normalized titles in a database or durable object store.
 `OMDB_API_KEY` is optional and is only needed for IMDb ratings.
 If you have TMDB's API Read Access Token instead of the API key, set `TMDB_API_TOKEN` instead of `TMDB_API_KEY`.
 
 `scripts/update-tmdb-data.py` writes the default generated catalog at `data/seeds/english_titles.generated.json`.
+The FastAPI catalog loader automatically refreshes when that file changes, so scheduled updates can become visible without restarting the API process.
 The GitHub Actions workflow stages that generated file so scheduled updates affect the same catalog the backend loads by default.

@@ -48,7 +48,7 @@ $env:CATALOG_PATH="data/seeds/english_titles.generated.json"
 Use `--region IN`, `--region US`, or another TMDB watch-provider region depending on the platform availability you want to display.
 `OMDB_API_KEY` is optional; when present, generated titles include IMDb ratings.
 If you have TMDB's API Read Access Token instead of the API key, set `TMDB_API_TOKEN` instead of `TMDB_API_KEY`.
-For a first run, use `--limit 120` or `--limit 250`; `--limit 1000` makes more than 1,000 network requests and can take a while.
+For a first run, use `--limit 120` or `--limit 250`; the ingester now mixes popular, top-rated, trending, and new-release feeds so the catalog grows with both evergreen and newly released titles. `--limit 1000` makes a lot of network requests and can take a while.
 
 ## Product flow
 
@@ -71,6 +71,8 @@ See `docs/modeling.md` for details.
 ## Production notes
 
 - `CATALOG_PATH` controls which JSON catalog the FastAPI service loads. The default is `data/seeds/english_titles.generated.json`.
+- The FastAPI service now reloads the catalog automatically when that JSON file changes, so scheduled ingestions can refresh a running app without a backend restart.
+- `TMDB_CATALOG_LIMIT`, `TMDB_MAX_PAGES`, and `TMDB_REQUEST_DELAY` let you tune scheduled ingestion size and cadence without editing code.
 - `SESSION_STORE_PATH` persists session state across backend restarts. On Railway, point it at a mounted volume path such as `/data/recommender_sessions.json`.
 - `ALLOWED_ORIGINS` should include your Vercel domain if you expose the backend directly to browsers.
 - Vercel should set `RECOMMENDER_API_BASE_URL` so its `/api/*` routes can reach the Railway backend.

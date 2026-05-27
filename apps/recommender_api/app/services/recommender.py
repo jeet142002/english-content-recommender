@@ -45,7 +45,6 @@ def feature_tokens(title: Title) -> list[str]:
 class RecommenderService:
     def __init__(self) -> None:
         self.session_store = JsonSessionStore.from_env()
-        self.catalog = load_catalog()
 
     def start_session(self, preferences: SessionPreferences) -> SessionTitleResponse:
         session_id = str(uuid4())
@@ -59,7 +58,7 @@ class RecommenderService:
     def filtered_titles(self, state: SessionState) -> list[Title]:
         return [
             title
-            for title in self.catalog
+            for title in load_catalog()
             if title.language == "en"
             and (state.preferences.contentMode == "either" or title.kind == state.preferences.contentMode)
         ]

@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from apps.recommender_api.app.routers.session import router as session_router
-from apps.recommender_api.app.services.catalog import load_catalog
+from apps.recommender_api.app.services.catalog import catalog_metadata, load_catalog
 from apps.recommender_api.app.services.recommender import service
 
 
@@ -33,9 +33,13 @@ app.add_middleware(
 
 @app.get("/health")
 def health() -> dict[str, object]:
+    metadata = catalog_metadata()
     return {
         "ok": True,
-        "catalogSize": len(load_catalog()),
+        "catalogSize": metadata["catalogSize"],
+        "catalogPath": metadata["catalogPath"],
+        "catalogFileModifiedAt": metadata["catalogFileModifiedAt"],
+        "catalogLoadedAt": metadata["catalogLoadedAt"],
         "sessionStore": service.session_store.label,
     }
 
