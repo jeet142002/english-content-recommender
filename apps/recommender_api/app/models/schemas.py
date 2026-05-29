@@ -61,6 +61,7 @@ class SessionState(BaseModel):
     events: list[SessionEvent] = Field(default_factory=list)
     confidence: float = 0.0
     profile: dict[str, float] = Field(default_factory=dict)
+    familiarityProfile: dict[str, float] = Field(default_factory=dict)
 
 
 class SessionTitleResponse(BaseModel):
