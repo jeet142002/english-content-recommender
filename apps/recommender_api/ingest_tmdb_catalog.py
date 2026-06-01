@@ -13,6 +13,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+from apps.recommender_api.app.services.catalog_quality import assess_catalog_entry
+from apps.recommender_api.app.services.metadata_enrichment import enrich_metadata
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -233,31 +235,6 @@ def extract_trailer_key(videos: dict[str, Any]) -> str | None:
     return None
 
 
-def derive_tags(genres: list[str], keywords: list[str], overview: str) -> tuple[list[str], list[str]]:
-    haystack = " ".join([*genres, *keywords, overview]).lower()
-    tone_rules = [
-        ("dark", ["murder", "crime", "killer", "violent", "revenge", "war"]),
-        ("funny", ["comedy", "sitcom", "funny", "comic"]),
-        ("tense", ["thriller", "survival", "mystery", "suspense"]),
-        ("emotional", ["drama", "family", "grief", "romance"]),
-        ("epic", ["fantasy", "adventure", "space", "saga"]),
-        ("cerebral", ["science fiction", "mystery", "psychological", "mind"]),
-        ("warm", ["family", "friendship", "heart", "kindness"]),
-    ]
-    style_rules = [
-        ("prestige", ["drama", "historical", "biography", "award"]),
-        ("fast-paced", ["action", "adventure", "thriller"]),
-        ("slow-burn", ["mystery", "psychological", "investigation"]),
-        ("world-building", ["fantasy", "science fiction", "dystopian"]),
-        ("character-driven", ["drama", "family", "romance"]),
-        ("accessible", ["comedy", "family", "animation"]),
-    ]
-
-    tones = [label for label, terms in tone_rules if any(term in haystack for term in terms)][:3]
-    styles = [label for label, terms in style_rules if any(term in haystack for term in terms)][:3]
-    return tones or ["engaging"], styles or ["mainstream"]
-
-
 def normalize_movie(summary: dict[str, Any], detail: dict[str, Any], region: str) -> dict[str, Any] | None:
     title = detail.get("title") or summary.get("title")
     year = first_year(detail.get("release_date") or summary.get("release_date"))
@@ -274,13 +251,44 @@ def normalize_movie(summary: dict[str, Any], detail: dict[str, Any], region: str
     if not title or not year or not poster_path or not overview or not cast or not genres:
         return None
 
-    tones, styles = derive_tags(genres, keywords, overview)
+    enriched = enrich_metadata(
+        title=title,
+        kind="movie",
+        genres=genres,
+        subgenres=keywords[:3] or genres[:2],
+        keywords=keywords,
+        overview=overview,
+        tone=[],
+        style=[],
+        certification=extract_movie_certification(detail.get("release_dates", {}), region),
+        runtime=int(detail.get("runtime") or 0),
+        seasons=None,
+        quality_score=round(float(detail.get("vote_average") or 0) * 10, 2),
+        popularity=scale_popularity(float(detail.get("popularity") or 0)),
+        familiarity=familiarity_score(float(detail.get("popularity") or 0), int(detail.get("vote_count") or 0)),
+    )
     tmdb_rating = round(float(detail.get("vote_average") or 0), 1)
     external_ids = detail.get("external_ids", {})
     imdb_id = external_ids.get("imdb_id")
 
     imdb_rating = request_omdb_rating(imdb_id)
     trailer_key = extract_trailer_key(detail.get("videos", {}))
+
+    certification = extract_movie_certification(detail.get("release_dates", {}), region)
+    runtime = int(detail.get("runtime") or 0)
+    popularity = scale_popularity(float(detail.get("popularity") or 0))
+    familiarity = familiarity_score(float(detail.get("popularity") or 0), int(detail.get("vote_count") or 0))
+    quality = assess_catalog_entry(
+        title=title,
+        original_language=detail.get("original_language"),
+        localized_languages=spoken_language_names(detail),
+        quality_score=round(tmdb_rating * 10, 2),
+        popularity=popularity,
+        familiarity=familiarity,
+        synopsis=overview,
+    )
+    if not quality.keep_in_catalog:
+        return None
 
     return {
         "id": f"{slugify(title)}_{year}_{detail['id']}",
@@ -294,19 +302,23 @@ def normalize_movie(summary: dict[str, Any], detail: dict[str, Any], region: str
         "language": "en",
         "originalLanguage": detail.get("original_language"),
         "localizedLanguages": spoken_language_names(detail),
-        "runtime": int(detail.get("runtime") or 0),
-        "certification": extract_movie_certification(detail.get("release_dates", {}), region),
+        "runtime": runtime,
+        "certification": certification,
         "genres": genres,
-        "subgenres": keywords[:3] or genres[:2],
-        "keywords": keywords,
+        "subgenres": enriched.subgenres,
+        "keywords": enriched.keywords,
+        "editorialTags": enriched.editorial_tags,
         "cast": cast,
         "director": director,
         "synopsis": overview,
-        "tone": tones,
-        "style": styles,
-        "popularity": scale_popularity(float(detail.get("popularity") or 0)),
+        "tone": enriched.tone,
+        "style": enriched.style,
+        "popularity": popularity,
         "qualityScore": round(tmdb_rating * 10, 2),
-        "familiarity": familiarity_score(float(detail.get("popularity") or 0), int(detail.get("vote_count") or 0)),
+        "familiarity": familiarity,
+        "englishConfidence": quality.english_confidence,
+        "trustScore": quality.trust_score,
+        "trustFlags": quality.trust_flags,
         "imdbRating": imdb_rating,
         "tmdbRating": tmdb_rating,
         "watchProviders": extract_watch_providers(detail.get("watch/providers", {}), region),
@@ -323,15 +335,46 @@ def normalize_series(summary: dict[str, Any], detail: dict[str, Any], region: st
     keywords = [item["name"] for item in detail.get("keywords", {}).get("results", []) if item.get("name")][:8]
     genres = [item["name"] for item in detail.get("genres", []) if item.get("name")]
     overview = detail.get("overview") or summary.get("overview") or ""
+    episode_runtimes = detail.get("episode_run_time") or []
 
     if not title or not year or not poster_path or not overview or not cast or not genres:
         return None
 
-    tones, styles = derive_tags(genres, keywords, overview)
+    runtime = int(episode_runtimes[0] if episode_runtimes else 0)
+    seasons = int(detail.get("number_of_seasons") or 0)
+    certification = extract_tv_certification(detail.get("content_ratings", {}), region)
+    popularity = scale_popularity(float(detail.get("popularity") or 0))
+    familiarity = familiarity_score(float(detail.get("popularity") or 0), int(detail.get("vote_count") or 0))
+    enriched = enrich_metadata(
+        title=title,
+        kind="series",
+        genres=genres,
+        subgenres=keywords[:3] or genres[:2],
+        keywords=keywords,
+        overview=overview,
+        tone=[],
+        style=[],
+        certification=certification,
+        runtime=runtime,
+        seasons=seasons,
+        quality_score=round(float(detail.get("vote_average") or 0) * 10, 2),
+        popularity=popularity,
+        familiarity=familiarity,
+    )
     tmdb_rating = round(float(detail.get("vote_average") or 0), 1)
+    quality = assess_catalog_entry(
+        title=title,
+        original_language=detail.get("original_language"),
+        localized_languages=spoken_language_names(detail),
+        quality_score=round(tmdb_rating * 10, 2),
+        popularity=popularity,
+        familiarity=familiarity,
+        synopsis=overview,
+    )
+    if not quality.keep_in_catalog:
+        return None
     external_ids = detail.get("external_ids", {})
     imdb_id = external_ids.get("imdb_id")
-    episode_runtimes = detail.get("episode_run_time") or []
 
     imdb_rating = request_omdb_rating(imdb_id)
     trailer_key = extract_trailer_key(detail.get("videos", {}))
@@ -348,20 +391,24 @@ def normalize_series(summary: dict[str, Any], detail: dict[str, Any], region: st
         "language": "en",
         "originalLanguage": detail.get("original_language"),
         "localizedLanguages": spoken_language_names(detail),
-        "runtime": int(episode_runtimes[0] if episode_runtimes else 0),
-        "seasons": int(detail.get("number_of_seasons") or 0),
-        "certification": extract_tv_certification(detail.get("content_ratings", {}), region),
+        "runtime": runtime,
+        "seasons": seasons,
+        "certification": certification,
         "genres": genres,
-        "subgenres": keywords[:3] or genres[:2],
-        "keywords": keywords,
+        "subgenres": enriched.subgenres,
+        "keywords": enriched.keywords,
+        "editorialTags": enriched.editorial_tags,
         "cast": cast,
         "director": creators[0] if creators else None,
         "synopsis": overview,
-        "tone": tones,
-        "style": styles,
-        "popularity": scale_popularity(float(detail.get("popularity") or 0)),
+        "tone": enriched.tone,
+        "style": enriched.style,
+        "popularity": popularity,
         "qualityScore": round(tmdb_rating * 10, 2),
-        "familiarity": familiarity_score(float(detail.get("popularity") or 0), int(detail.get("vote_count") or 0)),
+        "familiarity": familiarity,
+        "englishConfidence": quality.english_confidence,
+        "trustScore": quality.trust_score,
+        "trustFlags": quality.trust_flags,
         "imdbRating": imdb_rating,
         "tmdbRating": tmdb_rating,
         "watchProviders": extract_watch_providers(detail.get("watch/providers", {}), region),

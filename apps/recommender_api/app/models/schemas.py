@@ -34,6 +34,7 @@ class Title(BaseModel):
     genres: list[str]
     subgenres: list[str]
     keywords: list[str]
+    editorialTags: list[str] = Field(default_factory=list)
     cast: list[str]
     director: str | None = None
     synopsis: str
@@ -42,6 +43,9 @@ class Title(BaseModel):
     popularity: float
     qualityScore: float
     familiarity: float
+    englishConfidence: float = 0.0
+    trustScore: float = 0.0
+    trustFlags: list[str] = Field(default_factory=list)
     imdbRating: float | None = None
     tmdbRating: float | None = None
     watchProviders: list[str] = Field(default_factory=list)

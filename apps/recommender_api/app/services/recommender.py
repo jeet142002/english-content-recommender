@@ -29,11 +29,13 @@ ADVENTURE_FAMILIARITY_WEIGHT = {"safe": 0.25, "balanced": 0.08, "surprise": -0.1
 ADVENTURE_LONGTAIL_BOOST = {"safe": 0.0, "balanced": 0.08, "surprise": 0.22}
 QUESTION_FAMILIARITY_ALIGNMENT_WEIGHT = {"safe": 0.22, "balanced": 0.08, "surprise": -0.12}
 FINAL_FAMILIARITY_ALIGNMENT_WEIGHT = {"safe": 0.14, "balanced": 0.04, "surprise": -0.08}
+ADVENTURE_RELIABILITY_WEIGHT = {"safe": 0.2, "balanced": 0.12, "surprise": 0.05}
 FEATURE_GROUP_WEIGHTS = {
     "genre": 1.35,
     "subgenre": 0.85,
     "tone": 1.1,
     "style": 0.95,
+    "editorial": 1.05,
     "cast": 0.55,
     "director": 0.5,
     "keyword": 0.45,
@@ -41,7 +43,11 @@ FEATURE_GROUP_WEIGHTS = {
     "era": 0.35,
 }
 MAX_REASON_TOKENS = 3
-REASON_GROUPS = {"genre", "subgenre", "tone", "style", "cast", "director", "keyword"}
+REASON_GROUPS = {"genre", "subgenre", "tone", "style", "editorial", "cast", "director", "keyword"}
+NEIGHBORHOOD_QUESTION_WEIGHT = 0.17
+NEIGHBORHOOD_FINAL_WEIGHT = 0.24
+NEIGHBORHOOD_REDUNDANCY_PENALTY = 0.08
+MAX_NEIGHBORS_PER_TITLE = 18
 
 
 def feature_tokens(title: Title) -> list[tuple[str, str]]:
@@ -50,6 +56,7 @@ def feature_tokens(title: Title) -> list[tuple[str, str]]:
     tokens.extend(("subgenre", f"subgenre:{value.lower()}") for value in title.subgenres)
     tokens.extend(("tone", f"tone:{value.lower()}") for value in title.tone)
     tokens.extend(("style", f"style:{value.lower()}") for value in title.style)
+    tokens.extend(("editorial", f"editorial:{value.lower()}") for value in title.editorialTags[:5])
     tokens.extend(("cast", f"cast:{value.lower()}") for value in title.cast[:3])
     if title.director:
         tokens.append(("director", f"director:{title.director.lower()}"))
@@ -182,36 +189,46 @@ class RecommenderService:
         uncertainty = self._uncertainty_score(state, title)
         information_gain = self._information_gain(state, title)
         familiarity_alignment = self._familiarity_alignment(state, title)
+        neighborhood_signal = self._neighborhood_preference(state, title)
         familiarity = title.familiarity / 100
         popularity = title.popularity / 100
         quality = title.qualityScore / 100
+        reliability = self._reliability_score(title)
         long_tail = max(0.0, 1 - popularity)
         redundancy_penalty = self._redundancy_penalty(state, title)
 
-        score = relevance * 0.34 + quality * 0.2 + uncertainty * 0.18 + information_gain * 0.14
+        score = relevance * 0.34 + self._adjusted_quality(title) * 0.2 + uncertainty * 0.18 + information_gain * 0.14
         score += popularity * ADVENTURE_POPULARITY_WEIGHT[state.preferences.adventureLevel]
         score += familiarity * ADVENTURE_FAMILIARITY_WEIGHT[state.preferences.adventureLevel]
         score += long_tail * ADVENTURE_LONGTAIL_BOOST[state.preferences.adventureLevel]
         score += familiarity_alignment * QUESTION_FAMILIARITY_ALIGNMENT_WEIGHT[state.preferences.adventureLevel]
+        score += reliability * ADVENTURE_RELIABILITY_WEIGHT[state.preferences.adventureLevel]
+        score += neighborhood_signal * NEIGHBORHOOD_QUESTION_WEIGHT
+        score -= self._low_support_penalty(title) * 0.12
         score += self._diversity_bonus(state, title)
         score -= redundancy_penalty * 0.18
         return score
 
     def _final_score(self, state: SessionState, title: Title) -> float:
         relevance = self._profile_similarity(state, title)
-        quality = title.qualityScore / 100
+        adjusted_quality = self._adjusted_quality(title)
         popularity = title.popularity / 100
         novelty = 1 - (title.familiarity / 100)
         diversity = self._diversity_bonus(state, title)
         familiarity_alignment = self._familiarity_alignment(state, title)
+        neighborhood_signal = self._neighborhood_preference(state, title)
+        reliability = self._reliability_score(title)
         redundancy_penalty = self._redundancy_penalty(state, title)
         return (
             relevance * 0.56
-            + quality * 0.24
+            + adjusted_quality * 0.24
             + novelty * 0.1
             + diversity * 0.1
             + familiarity_alignment * FINAL_FAMILIARITY_ALIGNMENT_WEIGHT[state.preferences.adventureLevel]
+            + reliability * ADVENTURE_RELIABILITY_WEIGHT[state.preferences.adventureLevel]
+            + neighborhood_signal * NEIGHBORHOOD_FINAL_WEIGHT
             - popularity * 0.05
+            - self._low_support_penalty(title) * 0.16
             - redundancy_penalty * 0.12
         )
 
@@ -351,7 +368,9 @@ class RecommenderService:
     def _redundancy_penalty(self, state: SessionState, title: Title) -> float:
         recent_ids = state.shownTitleIds[-4:]
         recent_titles = [by_id(title_id) for title_id in recent_ids if title_id != title.id]
-        return max((self._title_similarity(title, candidate) for candidate in recent_titles), default=0.0)
+        recent_similarity = max((self._title_similarity(title, candidate) for candidate in recent_titles), default=0.0)
+        neighborhood_overlap = self._neighbor_overlap(state, title)
+        return min(1.0, recent_similarity + neighborhood_overlap * NEIGHBORHOOD_REDUNDANCY_PENALTY)
 
     def _title_similarity(self, left: Title, right: Title) -> float:
         left_weights = {token: self._feature_weight(group, token) for group, token in feature_tokens(left)}
@@ -364,6 +383,61 @@ class RecommenderService:
 
     def _token_idf(self, token: str) -> float:
         return token_idf_lookup().get(token, 1.0)
+
+    def _reliability_score(self, title: Title) -> float:
+        familiarity = math.sqrt(max(0.0, title.familiarity / 100))
+        popularity = math.sqrt(max(0.0, title.popularity / 100))
+        trust_score = title.trustScore or 0.0
+        return min(1.0, 0.12 + familiarity * 0.44 + popularity * 0.2 + trust_score * 0.32)
+
+    def _adjusted_quality(self, title: Title) -> float:
+        base_quality = title.qualityScore / 100
+        reliability = self._reliability_score(title)
+        return base_quality * (0.68 + reliability * 0.32)
+
+    def _low_support_penalty(self, title: Title) -> float:
+        quality = title.qualityScore / 100
+        familiarity = title.familiarity / 100
+        trust_gap = max(0.0, 0.58 - (title.trustScore or 0.0))
+        if quality < 0.88 or familiarity >= 0.2:
+            return trust_gap * 0.3
+        return (quality - 0.88) * (0.2 - familiarity) * 6 + trust_gap * 0.45
+
+    def _neighborhood_preference(self, state: SessionState, title: Title) -> float:
+        rated_events = [event for event in state.events if event.value in TASTE_FEEDBACK_VALUES]
+        if not rated_events:
+            return 0.0
+
+        contributions: list[float] = []
+        for event in rated_events[-5:]:
+            similarity = self._cached_title_similarity(title.id, event.titleId)
+            if similarity <= 0:
+                continue
+            direction = 1.0 if event.value == "like" else -0.8
+            recency_weight = 1.0 - max(0, len(rated_events) - event.step) * 0.08
+            contributions.append(similarity * direction * max(0.55, recency_weight))
+
+        if not contributions:
+            return 0.0
+        return max(-1.0, min(1.0, sum(contributions) / len(contributions)))
+
+    def _neighbor_overlap(self, state: SessionState, title: Title) -> float:
+        liked_ids = [event.titleId for event in state.events if event.value == "like"]
+        if not liked_ids:
+            return 0.0
+        candidate_neighbors = {neighbor_id for neighbor_id, _ in title_neighbor_lookup().get(title.id, [])[:8]}
+        if not candidate_neighbors:
+            return 0.0
+        overlap_count = 0
+        for liked_id in liked_ids[-3:]:
+            liked_neighbors = {neighbor_id for neighbor_id, _ in title_neighbor_lookup().get(liked_id, [])[:8]}
+            overlap_count += len(candidate_neighbors.intersection(liked_neighbors))
+        return min(1.0, overlap_count / 8)
+
+    def _cached_title_similarity(self, left_id: str, right_id: str) -> float:
+        if left_id == right_id:
+            return 1.0
+        return title_similarity_lookup().get(_pair_key(left_id, right_id), 0.0)
 
 
 service = RecommenderService()
@@ -395,3 +469,76 @@ def token_idf_lookup(
         raw_idf = math.log((1 + total_titles) / (1 + frequency)) + 1
         lookup[token] = round(min(1.8, max(0.7, raw_idf)), 4)
     return lookup
+
+
+@lru_cache(maxsize=4)
+def title_similarity_lookup(
+    source_path: str | None = None,
+    file_modified_at: float | None = None,
+    catalog_size: int | None = None,
+) -> dict[tuple[str, str], float]:
+    if source_path is None or file_modified_at is None or catalog_size is None:
+        snapshot = get_catalog_snapshot()
+        return title_similarity_lookup(
+            str(snapshot.source_path),
+            snapshot.file_modified_at,
+            len(snapshot.titles),
+        )
+
+    del source_path, file_modified_at, catalog_size
+    snapshot = get_catalog_snapshot()
+    title_weights = {
+        title.id: {token: FEATURE_GROUP_WEIGHTS[group] * token_idf_lookup().get(token, 1.0) for group, token in feature_tokens(title)}
+        for title in snapshot.titles
+    }
+
+    lookup: dict[tuple[str, str], float] = {}
+    titles = snapshot.titles
+    for index, left in enumerate(titles):
+        left_weights = title_weights[left.id]
+        for right in titles[index + 1 :]:
+            right_weights = title_weights[right.id]
+            overlap = sum(
+                min(left_weights[token], right_weights[token])
+                for token in left_weights.keys() & right_weights.keys()
+            )
+            if overlap <= 0:
+                continue
+            union = sum(left_weights.values()) + sum(right_weights.values()) - overlap
+            if union <= 0:
+                continue
+            similarity = round(overlap / union, 4)
+            if similarity >= 0.08:
+                lookup[_pair_key(left.id, right.id)] = similarity
+    return lookup
+
+
+@lru_cache(maxsize=4)
+def title_neighbor_lookup(
+    source_path: str | None = None,
+    file_modified_at: float | None = None,
+    catalog_size: int | None = None,
+) -> dict[str, list[tuple[str, float]]]:
+    if source_path is None or file_modified_at is None or catalog_size is None:
+        snapshot = get_catalog_snapshot()
+        return title_neighbor_lookup(
+            str(snapshot.source_path),
+            snapshot.file_modified_at,
+            len(snapshot.titles),
+        )
+
+    del source_path, file_modified_at, catalog_size
+    snapshot = get_catalog_snapshot()
+    neighbors: dict[str, list[tuple[str, float]]] = {title.id: [] for title in snapshot.titles}
+    for (left_id, right_id), similarity in title_similarity_lookup().items():
+        neighbors[left_id].append((right_id, similarity))
+        neighbors[right_id].append((left_id, similarity))
+
+    return {
+        title_id: sorted(items, key=lambda item: item[1], reverse=True)[:MAX_NEIGHBORS_PER_TITLE]
+        for title_id, items in neighbors.items()
+    }
+
+
+def _pair_key(left_id: str, right_id: str) -> tuple[str, str]:
+    return (left_id, right_id) if left_id < right_id else (right_id, left_id)
