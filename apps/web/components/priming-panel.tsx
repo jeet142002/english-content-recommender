@@ -302,7 +302,7 @@ export function PrimingPanel({
         <div className="section-label">Tonight</div>
         <h2 className="setup-title">What are you in the mood for?</h2>
         <p className="setup-copy">
-          Pick a format and how adventurous you're feeling. We'll take it from there.
+          Pick a format and how adventurous you&apos;re feeling. We&apos;ll take it from there.
         </p>
 
       </motion.div>
@@ -390,7 +390,7 @@ export function PrimingPanel({
 
         <div className="deck-line">
           <Clapperboard size={16} />
-          You'll see one title at a time. Stop when something clicks.
+          You&apos;ll see one title at a time. Stop when something clicks.
         </div>
       </motion.div>
 
