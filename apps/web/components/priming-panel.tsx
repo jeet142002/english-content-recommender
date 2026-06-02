@@ -13,16 +13,50 @@ type PrimingPanelProps = {
   loading: boolean;
 };
 
-const contentOptions: { value: ContentMode; label: string; icon: typeof Film }[] = [
-  { value: "movie", label: "Movie", icon: Film },
-  { value: "series", label: "Series", icon: Tv },
-  { value: "either", label: "Surprise me", icon: Shuffle },
+const contentOptions: { value: ContentMode; label: string; description: string; icon: typeof Film }[] = [
+  {
+    value: "movie",
+    label: "Movie",
+    description: "One great film.",
+    icon: Film,
+  },
+  {
+    value: "series",
+    label: "Series",
+    description: "Something to binge.",
+    icon: Tv,
+  },
+  {
+    value: "either",
+    label: "Surprise me",
+    description: "Anything goes.",
+    icon: Shuffle,
+  },
 ];
 
-const adventureOptions: { value: AdventureLevel; label: string; icon: typeof Moon; accent: string }[] = [
-  { value: "safe", label: "Familiar", icon: Moon, accent: "calm" },
-  { value: "balanced", label: "Electric", icon: Flame, accent: "hot" },
-  { value: "surprise", label: "Wild card", icon: Sparkles, accent: "wild" },
+
+const adventureOptions: { value: AdventureLevel; label: string; description: string; icon: typeof Moon; accent: string }[] = [
+  {
+    value: "safe",
+    label: "Familiar",
+    description: "Crowd favourites.",
+    icon: Moon,
+    accent: "calm",
+  },
+  {
+    value: "balanced",
+    label: "Fresh",
+    description: "Popular with a twist.",
+    icon: Flame,
+    accent: "hot",
+  },
+  {
+    value: "surprise",
+    label: "Wild card",
+    description: "Unexpected gems.",
+    icon: Sparkles,
+    accent: "wild",
+  },
 ];
 
 export function PrimingPanel({
@@ -37,13 +71,12 @@ export function PrimingPanel({
       <style jsx>{`
         .priming-panel {
           display: grid;
-          gap: var(--space-8);
-          padding: var(--space-8) 0 var(--space-12);
+          gap: var(--space-6);
         }
 
         .setup-hero {
           display: grid;
-          max-width: 760px;
+          max-width: 620px;
           gap: var(--space-4);
         }
 
@@ -57,7 +90,7 @@ export function PrimingPanel({
         }
 
         .setup-copy {
-          max-width: 560px;
+          max-width: 650px;
           color: var(--text-secondary);
           font-size: 18px;
           font-weight: 650;
@@ -66,7 +99,7 @@ export function PrimingPanel({
 
         .setup-grid {
           display: grid;
-          grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+          grid-template-columns: 1fr 1fr;
           gap: var(--space-4);
           align-items: stretch;
         }
@@ -74,11 +107,6 @@ export function PrimingPanel({
         .setup-panel {
           display: grid;
           gap: var(--space-4);
-          padding: var(--space-5);
-          border: 1px solid var(--line);
-          border-radius: var(--radius-sm);
-          background: rgba(255, 255, 255, 0.055);
-          backdrop-filter: blur(20px);
         }
 
         .panel-title {
@@ -101,7 +129,6 @@ export function PrimingPanel({
           overflow: hidden;
           display: grid;
           align-content: end;
-          min-height: 150px;
           gap: var(--space-4);
           padding: var(--space-4);
           border: 1px solid var(--line);
@@ -135,9 +162,12 @@ export function PrimingPanel({
 
         .format-button.active,
         .range-button.active {
-          border-color: rgba(247, 243, 234, 0.58);
-          background: rgba(255, 255, 255, 0.1);
-          box-shadow: 0 22px 54px rgba(0, 0, 0, 0.34);
+          border-color: rgba(247,243,234,0.75);
+          background: rgba(255,255,255,0.11);
+
+          box-shadow:
+            0 24px 60px rgba(0,0,0,0.38),
+            0 0 0 1px rgba(255,255,255,0.04) inset;
         }
 
         .format-button.active::before,
@@ -168,6 +198,16 @@ export function PrimingPanel({
           line-height: 1.15;
         }
 
+        .option-copy,
+        .range-copy {
+          position: relative;
+          z-index: 1;
+          color: var(--text-secondary);
+          font-size: 13px;
+          font-weight: 600;
+          line-height: 1.4;
+        }
+
         .range-options {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -175,7 +215,11 @@ export function PrimingPanel({
         }
 
         .range-button {
-          min-height: 210px;
+          min-height: 130px;
+        }
+        
+        .format-button {
+          min-height: 145px;
         }
 
         .range-button.calm .range-icon {
@@ -190,21 +234,23 @@ export function PrimingPanel({
           color: var(--rose);
         }
 
+
         .submit-section {
           display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: var(--space-4);
-          padding-top: var(--space-2);
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+          margin-top: -2px;
         }
 
         .deck-line {
-          display: inline-flex;
+          display: flex;
           align-items: center;
-          gap: var(--space-2);
-          color: var(--text-muted);
+          gap: 8px;
+          color: rgba(247,243,234,0.72);
           font-size: 13px;
-          font-weight: 850;
+          font-weight: 700;
+          line-height: 1.4;
         }
 
         @media (max-width: 980px) {
@@ -243,10 +289,6 @@ export function PrimingPanel({
             align-items: center;
           }
 
-          .submit-section {
-            align-items: stretch;
-            flex-direction: column-reverse;
-          }
         }
       `}</style>
 
@@ -256,9 +298,13 @@ export function PrimingPanel({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.38 }}
       >
+
         <div className="section-label">Tonight</div>
-        <h2 className="setup-title">Set the scene.</h2>
-        <p className="setup-copy">Two taps, then the deck starts moving.</p>
+        <h2 className="setup-title">What are you in the mood for?</h2>
+        <p className="setup-copy">
+          Pick a format and how adventurous you're feeling. We'll take it from there.
+        </p>
+
       </motion.div>
 
       <div className="setup-grid">
@@ -268,7 +314,7 @@ export function PrimingPanel({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.38, delay: 0.06 }}
         >
-          <div className="panel-title">Format</div>
+          <div className="panel-title">What are you watching?</div>
           <div className="format-options">
             {contentOptions.map((option) => (
               <button
@@ -282,6 +328,7 @@ export function PrimingPanel({
                   <option.icon size={20} strokeWidth={2.2} />
                 </div>
                 <div className="option-label">{option.label}</div>
+                <div className="option-copy">{option.description}</div>
               </button>
             ))}
           </div>
@@ -293,7 +340,7 @@ export function PrimingPanel({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.38, delay: 0.12 }}
         >
-          <div className="panel-title">Range</div>
+          <div className="panel-title">How adventurous?</div>
           <div className="range-options">
             {adventureOptions.map((option) => (
               <button
@@ -307,23 +354,27 @@ export function PrimingPanel({
                   <option.icon size={20} strokeWidth={2.2} />
                 </div>
                 <div className="range-label">{option.label}</div>
+                <div className="range-copy">{option.description}</div>
               </button>
             ))}
           </div>
         </motion.div>
       </div>
-
       <motion.div
         className="submit-section"
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.38, delay: 0.18 }}
+        transition={{
+          duration: 0.45,
+          delay: 0.22
+        }}
       >
-        <div className="deck-line">
-          <Clapperboard size={16} />
-          React fast. Stop whenever it clicks.
-        </div>
-        <button onClick={onSubmit} disabled={loading} className="btn btn-primary btn-lg" data-testid="start-tasting">
+        <button
+          onClick={onSubmit}
+          disabled={loading}
+          className="btn btn-primary btn-lg"
+          data-testid="start-tasting"
+        >
           {loading ? (
             <>
               <Loader2 size={18} className="animate-spin" />
@@ -336,7 +387,13 @@ export function PrimingPanel({
             </>
           )}
         </button>
+
+        <div className="deck-line">
+          <Clapperboard size={16} />
+          You'll see one title at a time. Stop when something clicks.
+        </div>
       </motion.div>
+
     </section>
   );
 }

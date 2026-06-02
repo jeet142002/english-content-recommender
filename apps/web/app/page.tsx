@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, Clapperboard } from "lucide-react";
 
@@ -14,8 +14,22 @@ import type { AdventureLevel, ContentMode, FeedbackValue } from "@/lib/types";
 
 type Phase = "landing" | "priming" | "rating" | "result";
 
+function isInteractiveHotkeyTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  if (target.isContentEditable) {
+    return true;
+  }
+
+  const tagName = target.tagName.toLowerCase();
+  return ["input", "textarea", "select", "button", "summary"].includes(tagName);
+}
+
 export default function HomePage() {
   const [phase, setPhase] = useState<Phase>("landing");
+  const hotkeyFeedbackRef = useRef<(value: FeedbackValue) => Promise<void>>(async () => {});
   const {
     contentMode,
     adventureLevel,
@@ -35,6 +49,36 @@ export default function HomePage() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [phase, currentTitle?.title.id]);
+
+  useEffect(() => {
+    hotkeyFeedbackRef.current = handleFeedback;
+  });
+
+  useEffect(() => {
+    if (phase !== "rating" || !currentTitle || loading) {
+      return;
+    }
+
+    function handleKeydown(event: KeyboardEvent) {
+      if (isInteractiveHotkeyTarget(event.target)) {
+        return;
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        void hotkeyFeedbackRef.current("like");
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        void hotkeyFeedbackRef.current("dislike");
+      } else if (event.key === "ArrowDown") {
+        event.preventDefault();
+        void hotkeyFeedbackRef.current("not_seen");
+      }
+    }
+
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [phase, currentTitle, loading]);
 
   async function beginSession() {
     try {

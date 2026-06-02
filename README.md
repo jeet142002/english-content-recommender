@@ -73,7 +73,8 @@ See `docs/modeling.md` for details.
 - `CATALOG_PATH` controls which JSON catalog the FastAPI service loads. The default is `data/seeds/english_titles.generated.json`.
 - The FastAPI service now reloads the catalog automatically when that JSON file changes, so scheduled ingestions can refresh a running app without a backend restart.
 - `TMDB_CATALOG_LIMIT`, `TMDB_MAX_PAGES`, and `TMDB_REQUEST_DELAY` let you tune scheduled ingestion size and cadence without editing code.
-- `SESSION_STORE_PATH` persists session state across backend restarts. On Railway, point it at a mounted volume path such as `/data/recommender_sessions.json`.
+- `SESSION_STORE_PATH` persists session state across backend restarts in a SQLite file. On Railway, point it at a mounted volume path such as `/data/recommender_sessions.sqlite3`.
+- `SESSION_TTL_SECONDS` controls how long inactive sessions remain valid before automatic cleanup. The default is 24 hours.
 - `ALLOWED_ORIGINS` should include your Vercel domain if you expose the backend directly to browsers.
 - Vercel should set `RECOMMENDER_API_BASE_URL` so its `/api/*` routes can reach the Railway backend.
 - The Vercel proxy still recognizes the legacy `NEXT_PUBLIC_API_URL` variable, but `RECOMMENDER_API_BASE_URL` is preferred.

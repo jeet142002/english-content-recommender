@@ -23,7 +23,8 @@ railway up
 - `TMDB_API_TOKEN=your_token_here` (optional if `TMDB_API_KEY` is set)
 - `OMDB_API_KEY=your_omdb_key` (optional)
 - `CATALOG_PATH=data/seeds/english_titles.generated.json`
-- `SESSION_STORE_PATH=/data/recommender_sessions.json`
+- `SESSION_STORE_PATH=/data/recommender_sessions.sqlite3`
+- `SESSION_TTL_SECONDS=86400`
 - `ALLOWED_ORIGINS=https://your-vercel-app.vercel.app`
 
 For `SESSION_STORE_PATH=/data/...`, attach a Railway volume mounted at `/data`.
@@ -95,8 +96,8 @@ python scripts/update-tmdb-data.py
 
 | Feature | Current | Production Ready |
 |---------|---------|------------------|
-| Database | JSON file | PostgreSQL |
-| Sessions | JSON file via `SESSION_STORE_PATH` | Redis/PostgreSQL |
+| Database | SQLite file | PostgreSQL |
+| Sessions | SQLite via `SESSION_STORE_PATH` | Redis/PostgreSQL |
 | Updates | Manual script | Automated GitHub Actions |
 | Users | Unlimited | Unlimited |
 | Cost | Free tier | ~$10-30/month |
@@ -136,7 +137,7 @@ images: {
 **Database Connection:**
 ```python
 # Current implementation uses SESSION_STORE_PATH for restart-safe sessions.
-# Move to DATABASE_URL when you add multi-instance session storage.
+# Move to DATABASE_URL or Redis when you add multi-instance session storage.
 SESSION_STORE_PATH = os.getenv("SESSION_STORE_PATH")
 ```
 

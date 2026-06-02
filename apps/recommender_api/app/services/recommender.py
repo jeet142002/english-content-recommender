@@ -18,7 +18,7 @@ from apps.recommender_api.app.models.schemas import (
 )
 
 from apps.recommender_api.app.services.catalog import by_id, get_catalog_snapshot, load_catalog
-from apps.recommender_api.app.services.session_store import JsonSessionStore
+from apps.recommender_api.app.services.session_store import SqliteSessionStore
 
 
 WEIGHTS = {"like": 1.0, "dislike": -0.85, "not_seen": 0.0}
@@ -69,10 +69,10 @@ def feature_tokens(title: Title) -> list[tuple[str, str]]:
 class RecommenderService:
     def __init__(
         self,
-        session_store: JsonSessionStore | None = None,
+        session_store: SqliteSessionStore | None = None,
         rng: random.Random | None = None,
     ) -> None:
-        self.session_store = session_store or JsonSessionStore.from_env()
+        self.session_store = session_store or SqliteSessionStore.from_env()
         self.rng = rng or random.Random()
 
     def start_session(self, preferences: SessionPreferences) -> SessionTitleResponse:

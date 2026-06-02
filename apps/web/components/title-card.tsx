@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, type PanInfo } from "framer-motion";
+import { motion, type PanInfo, useMotionValue, useTransform } from "framer-motion";
+import { useState } from "react";
 import { Eye, Heart, Info, Loader2, RotateCcw, ThumbsDown } from "lucide-react";
 
 import { PosterImage } from "@/components/poster-image";
@@ -13,6 +14,8 @@ type TitleCardProps = {
   loading: boolean;
 };
 
+type DragIntent = FeedbackValue | null;
+
 const actions: {
   value: FeedbackValue;
   label: string;
@@ -24,28 +27,67 @@ const actions: {
   { value: "like", label: "Lock in", icon: Heart, variant: "like" },
 ];
 
+const SWIPE_X_THRESHOLD = 120;
+const SWIPE_Y_THRESHOLD = 130;
+const SWIPE_HINT_THRESHOLD = 36;
+
+function resolveDragIntent(offsetX: number, offsetY: number): DragIntent {
+  const horizontalStrength = Math.abs(offsetX) / SWIPE_X_THRESHOLD;
+  const downwardStrength = Math.max(0, offsetY) / SWIPE_Y_THRESHOLD;
+
+  if (horizontalStrength < SWIPE_HINT_THRESHOLD / SWIPE_X_THRESHOLD && downwardStrength < SWIPE_HINT_THRESHOLD / SWIPE_Y_THRESHOLD) {
+    return null;
+  }
+
+  if (horizontalStrength >= downwardStrength) {
+    return offsetX > 0 ? "like" : "dislike";
+  }
+
+  return offsetY > 0 ? "not_seen" : null;
+}
+
 export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardProps) {
   const { title, step } = payload;
   const runtimeLabel = title.kind === "movie" ? `${title.runtime} min` : `${title.seasons ?? 0} seasons`;
+  const [dragIntent, setDragIntent] = useState<DragIntent>(null);
+  const [dragStrength, setDragStrength] = useState(0);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const rotate = useTransform(x, [-220, 220], [-9, 9]);
 
   function handleDragEnd(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
+    setDragIntent(null);
+    setDragStrength(0);
+
     if (loading) {
       return;
     }
 
-    if (info.offset.x > 120) {
+    if (info.offset.x > SWIPE_X_THRESHOLD) {
       onFeedback("like");
       return;
     }
 
-    if (info.offset.x < -120) {
+    if (info.offset.x < -SWIPE_X_THRESHOLD) {
       onFeedback("dislike");
       return;
     }
 
-    if (info.offset.y > 130) {
+    if (info.offset.y > SWIPE_Y_THRESHOLD) {
       onFeedback("not_seen");
     }
+  }
+
+  function handleDrag(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
+    const nextIntent = resolveDragIntent(info.offset.x, info.offset.y);
+    const nextStrength = nextIntent === "like" || nextIntent === "dislike"
+      ? Math.min(1, Math.abs(info.offset.x) / SWIPE_X_THRESHOLD)
+      : nextIntent === "not_seen"
+        ? Math.min(1, Math.max(0, info.offset.y) / SWIPE_Y_THRESHOLD)
+        : 0;
+
+    setDragIntent(nextIntent);
+    setDragStrength(nextStrength);
   }
 
   return (
@@ -72,6 +114,27 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           box-shadow: 0 30px 90px rgba(0, 0, 0, 0.54);
           touch-action: pan-y;
           user-select: none;
+        }
+
+        .deck-card.intent-like {
+          box-shadow:
+            0 30px 90px rgba(0, 0, 0, 0.54),
+            0 0 0 1px rgba(43, 214, 111, 0.24),
+            0 0 0 10px rgba(43, 214, 111, 0.06);
+        }
+
+        .deck-card.intent-dislike {
+          box-shadow:
+            0 30px 90px rgba(0, 0, 0, 0.54),
+            0 0 0 1px rgba(255, 77, 93, 0.24),
+            0 0 0 10px rgba(255, 77, 93, 0.06);
+        }
+
+        .deck-card.intent-not_seen {
+          box-shadow:
+            0 30px 90px rgba(0, 0, 0, 0.54),
+            0 0 0 1px rgba(97, 181, 255, 0.24),
+            0 0 0 10px rgba(97, 181, 255, 0.07);
         }
 
         .deck-card::before {
@@ -131,6 +194,59 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
           justify-content: space-between;
           gap: var(--space-4);
           padding: var(--space-5);
+        }
+
+        .swipe-indicator {
+          position: absolute;
+          z-index: 4;
+          display: grid;
+          gap: 4px;
+          min-width: 142px;
+          padding: 12px 16px;
+          border: 2px solid currentColor;
+          border-radius: var(--radius-sm);
+          background: rgba(7, 8, 13, 0.78);
+          backdrop-filter: blur(14px);
+          text-transform: uppercase;
+          pointer-events: none;
+          opacity: 0;
+        }
+
+        .swipe-indicator.like {
+          top: var(--space-5);
+          left: var(--space-5);
+          color: #77f0a7;
+          transform: rotate(-8deg);
+        }
+
+        .swipe-indicator.dislike {
+          top: var(--space-5);
+          right: var(--space-5);
+          color: #ff9cab;
+          transform: rotate(8deg);
+          text-align: right;
+        }
+
+        .swipe-indicator.not_seen {
+          bottom: 104px;
+          left: 50%;
+          color: #83c4ff;
+          text-align: center;
+          transform: translateX(-50%);
+        }
+
+        .indicator-label {
+          font-size: 26px;
+          font-weight: 950;
+          letter-spacing: 0.04em;
+          line-height: 0.94;
+        }
+
+        .indicator-copy {
+          color: rgba(247, 243, 234, 0.88);
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
         }
 
         .scene-pill {
@@ -443,6 +559,23 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
             0 1px 2px rgba(0, 0, 0, 0.9);
         }
 
+        .shortcut-note {
+          position: absolute;
+          left: 50%;
+          bottom: calc(var(--space-5) + 94px);
+          z-index: 5;
+          padding: 8px 12px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: var(--radius-full);
+          background: rgba(7, 8, 13, 0.58);
+          color: var(--text-secondary);
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.02em;
+          transform: translateX(-50%);
+          backdrop-filter: blur(14px);
+        }
+
         @keyframes detailsReveal {
           from {
             opacity: 0;
@@ -505,6 +638,20 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
             padding: var(--space-3);
           }
 
+          .swipe-indicator {
+            min-width: 122px;
+            padding: 10px 12px;
+          }
+
+          .swipe-indicator.like,
+          .swipe-indicator.dislike {
+            top: var(--space-3);
+          }
+
+          .indicator-label {
+            font-size: 21px;
+          }
+
           .scene-pill {
             font-size: 11px;
           }
@@ -548,6 +695,12 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
             padding: var(--space-2) var(--space-3);
           }
 
+          .shortcut-note {
+            bottom: calc(var(--space-4) + 84px);
+            width: calc(100% - 32px);
+            text-align: center;
+          }
+
           .action-button {
             width: 58px;
             height: 58px;
@@ -556,17 +709,55 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
       `}</style>
 
       <motion.article
-        className="deck-card"
+        className={`deck-card${dragIntent ? ` intent-${dragIntent}` : ""}`}
         drag={loading ? false : true}
+        style={{ x, y, rotate }}
         dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
         dragElastic={0.18}
+        onDrag={handleDrag}
         onDragEnd={handleDragEnd}
-        whileDrag={{ scale: 0.985, rotate: 1.6 }}
+        whileDrag={{ scale: 0.985 }}
         initial={{ opacity: 0, y: 18, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, x: 80, rotate: 5, scale: 0.96 }}
         transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
       >
+        <motion.div
+          className="swipe-indicator like"
+          aria-hidden="true"
+          animate={{
+            opacity: dragIntent === "like" ? 0.32 + dragStrength * 0.68 : 0,
+            scale: dragIntent === "like" ? 0.94 + dragStrength * 0.06 : 0.88,
+          }}
+        >
+          <div className="indicator-label">LIKE</div>
+          <div className="indicator-copy">Swipe right to lock it in</div>
+        </motion.div>
+
+        <motion.div
+          className="swipe-indicator dislike"
+          aria-hidden="true"
+          animate={{
+            opacity: dragIntent === "dislike" ? 0.32 + dragStrength * 0.68 : 0,
+            scale: dragIntent === "dislike" ? 0.94 + dragStrength * 0.06 : 0.88,
+          }}
+        >
+          <div className="indicator-label">PASS</div>
+          <div className="indicator-copy">Swipe left to skip it</div>
+        </motion.div>
+
+        <motion.div
+          className="swipe-indicator not_seen"
+          aria-hidden="true"
+          animate={{
+            opacity: dragIntent === "not_seen" ? 0.32 + dragStrength * 0.68 : 0,
+            scale: dragIntent === "not_seen" ? 0.94 + dragStrength * 0.06 : 0.88,
+          }}
+        >
+          <div className="indicator-label">UNSEEN</div>
+          <div className="indicator-copy">Swipe down if you have not seen it</div>
+        </motion.div>
+
         <div className="backdrop" aria-hidden="true">
           <PosterImage
             src={title.posterUrl}
@@ -694,9 +885,11 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
                   </div>
                 </div>
               </div>
-            </details>
+          </details>
 
         </div>
+
+        <div className="shortcut-note">Swipe or use arrows: left pass, down unseen, right like.</div>
 
         <div className="action-dock">
           {actions.map((action) => (

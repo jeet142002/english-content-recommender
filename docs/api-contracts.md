@@ -10,7 +10,7 @@ Response:
 {
   "ok": true,
   "catalogSize": 109,
-  "sessionStore": ".tmp/recommender_sessions.json"
+  "sessionStore": "sqlite:.tmp/recommender_sessions.sqlite3"
 }
 ```
 

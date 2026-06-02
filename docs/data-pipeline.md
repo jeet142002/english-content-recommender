@@ -58,7 +58,7 @@ Production target:
 Local prototype:
 
 - JSON seed catalog
-- JSON-backed session state through `SESSION_STORE_PATH`
+- SQLite-backed session state through `SESSION_STORE_PATH`
 
 ## Local TMDB ingestion
 

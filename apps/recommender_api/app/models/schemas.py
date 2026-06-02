@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -9,6 +10,14 @@ ContentKind = Literal["movie", "series"]
 ContentMode = Literal["movie", "series", "either"]
 AdventureLevel = Literal["safe", "balanced", "surprise"]
 FeedbackValue = Literal["like", "dislike", "not_seen"]
+
+
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def default_session_expiry() -> datetime:
+    return utc_now() + timedelta(hours=24)
 
 
 class SessionPreferences(BaseModel):
@@ -66,6 +75,9 @@ class SessionState(BaseModel):
     confidence: float = 0.0
     profile: dict[str, float] = Field(default_factory=dict)
     familiarityProfile: dict[str, float] = Field(default_factory=dict)
+    createdAt: datetime = Field(default_factory=utc_now)
+    updatedAt: datetime = Field(default_factory=utc_now)
+    expiresAt: datetime = Field(default_factory=default_session_expiry)
 
 
 class SessionTitleResponse(BaseModel):
