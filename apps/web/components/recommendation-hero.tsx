@@ -871,18 +871,6 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
               priority
             />
 
-            {/* <div className="poster-overlay">
-              <div className="poster-play">
-                ▶
-              </div>
-            </div> */}
-
-            {/* <button
-              className="poster-overlay"
-              onClick={() => setShowTrailer(true)}
-              aria-label={`Watch trailer for ${hero.title}`}
-            ></button> */}
-
             <button
               className="poster-overlay"
               onClick={() => setShowTrailer(true)}
@@ -912,8 +900,6 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
               <Sparkles size={15} />
               Press play tonight
             </div>
-
-            {/* <h2 className="hero-title">{hero.title}</h2> */}
 
             <a
               href={`https://www.google.com/search?q=${encodeURIComponent(hero.title)}`}
@@ -968,8 +954,6 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
 
 
             </div>
-
-            {/* <p className="hero-synopsis">{hero.synopsis}</p> */}
 
             <div className="hero-synopsis-wrapper">
 
@@ -1223,11 +1207,6 @@ export function RecommendationHero({ recommendation, onRestart }: Recommendation
                 />
               </div>
               <div>
-                {/* <div className="backup-title">
-                  {title.kind === "movie" ? <Film size={14} /> : <Tv size={14} />}
-                  {title.title}
-                </div> */}
-
                 <a
                   href={`https://www.google.com/search?q=${encodeURIComponent(title.title)}`}
                   target="_blank"

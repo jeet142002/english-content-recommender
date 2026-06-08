@@ -154,8 +154,22 @@ export default function HomePage() {
   }
 
   return (
-    <main className="page-shell">
+    <main className={`page-shell${phase === "rating" ? " rating-phase" : ""}`}>
       <style jsx>{`
+        .page-shell.rating-phase {
+          display: flex;
+          flex-direction: column;
+          min-height: 100dvh;
+          padding: 10px 16px 10px;
+        }
+
+        .rating-stage {
+          display: flex;
+          flex: 1 1 auto;
+          flex-direction: column;
+          min-height: 0;
+        }
+
         .app-header {
           position: sticky;
           top: 0;
@@ -187,6 +201,12 @@ export default function HomePage() {
           background: linear-gradient(135deg, var(--gold), var(--teal));
           color: #07080d;
           box-shadow: 0 8px 24px rgba(77, 212, 189, 0.22);
+        }
+
+        @media (max-width: 640px) {
+          .page-shell.rating-phase {
+            padding: 8px 12px 8px;
+          }
         }
 
         .error-banner {
@@ -258,7 +278,9 @@ export default function HomePage() {
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ duration: 0.4 }}
           >
-            <TitleCard payload={currentTitle} onFeedback={handleFeedback} onStop={handleStop} loading={loading} />
+            <div className="rating-stage">
+              <TitleCard payload={currentTitle} onFeedback={handleFeedback} onStop={handleStop} loading={loading} />
+            </div>
           </motion.div>
         )}
 
