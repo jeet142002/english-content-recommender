@@ -1181,7 +1181,7 @@ export function TitleCard({ payload, onFeedback, onStop, loading }: TitleCardPro
               </div>
 
               <div className="support-card">
-                <div className="support-label">Why You'll Like It</div>
+                <div className="support-label">Why You&apos;ll Like It</div>
                 <div className="support-value">
                   {title.style.slice(0, 2).map(formatTag).join(" / ") || title.subgenres.slice(0, 2).map(formatTag).join(" / ") || "No extra details"}
                 </div>
